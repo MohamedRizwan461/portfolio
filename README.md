@@ -2,7 +2,7 @@
 
 Personal portfolio of a robotics and embedded systems engineer.
 
-**Live:** https://mohamedrizwan.vercel.app
+**Live:** https://riz-robotics.vercel.app
 
 The home page is an interactive 3D circuit board: a data bus runs through time, each chip is a project on the part it actually ran on (RP2040, BCM2711, ESP8266, STM32F4, ATmega), and a small robot drives along the copper traces to whichever chip you click.
 

@@ -3,7 +3,7 @@ export const site = {
   short: "Riz",
   designation: "RIZ",
   role: "Robotics and Embedded Systems Engineer",
-  url: "https://mohamedrizwan.vercel.app",
+  url: "https://riz-robotics.vercel.app",
   email: "rizwan04061008@gmail.com",
   linkedin: "https://www.linkedin.com/in/mohamed-rizwan-ameer-john",
   github: "https://github.com/MohamedRizwan461",
