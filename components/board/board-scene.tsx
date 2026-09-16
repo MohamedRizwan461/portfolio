@@ -1,0 +1,637 @@
+"use client";
+
+import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Html, OrbitControls } from "@react-three/drei";
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import { BUS_Z, groupColor, stations, type Station } from "@/lib/stations";
+
+const COPPER = "#c7a25c";
+const MASK = "#0b1a1f";
+const BOARD_W = 24;
+const BOARD_D = 13;
+
+export type SceneProps = {
+  driveTo: string | null;
+  hovered: string | null;
+  active: string | null;
+  visited: Set<string>;
+  reduce: boolean;
+  compact: boolean;
+  onHover: (id: string | null) => void;
+  onPick: (id: string) => void;
+  onArrive: (id: string) => void;
+};
+
+/* ------------------------------------------------------------------ board */
+
+function Trace({
+  from,
+  to,
+  width = 0.1,
+  glow = 0.15,
+}: {
+  from: [number, number];
+  to: [number, number];
+  width?: number;
+  glow?: number;
+}) {
+  const [x1, z1] = from;
+  const [x2, z2] = to;
+  const len = Math.hypot(x2 - x1, z2 - z1);
+  const angle = Math.atan2(z2 - z1, x2 - x1);
+  return (
+    <mesh
+      position={[(x1 + x2) / 2, 0.012, (z1 + z2) / 2]}
+      rotation={[0, -angle, 0]}
+    >
+      <boxGeometry args={[len + width, 0.02, width]} />
+      <meshStandardMaterial
+        color={COPPER}
+        emissive={COPPER}
+        emissiveIntensity={glow}
+        metalness={0.6}
+        roughness={0.35}
+      />
+    </mesh>
+  );
+}
+
+function Via({ x, z }: { x: number; z: number }) {
+  return (
+    <mesh position={[x, 0.02, z]} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[0.07, 0.15, 20]} />
+      <meshStandardMaterial
+        color={COPPER}
+        metalness={0.7}
+        roughness={0.3}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+/** Decorative routing, seeded so the board looks the same on every visit. */
+function useDecorTraces() {
+  return useMemo(() => {
+    let seed = 7;
+    const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const lines: { from: [number, number]; to: [number, number] }[] = [];
+    for (let i = 0; i < 26; i++) {
+      const x = -11 + rand() * 22;
+      const z = (rand() > 0.5 ? 1 : -1) * (1.2 + rand() * 4.8);
+      const len = 0.8 + rand() * 2.4;
+      const horizontal = rand() > 0.5;
+      const bend = rand() > 0.5 ? 0.7 : -0.7;
+      const mid: [number, number] = horizontal
+        ? [x + len, z]
+        : [x, z + (z > 0 ? len : -len) * 0.5];
+      lines.push({ from: [x, z], to: mid });
+      lines.push({
+        from: mid,
+        to: horizontal ? [mid[0], mid[1] + bend] : [mid[0] + bend, mid[1]],
+      });
+    }
+    return lines;
+  }, []);
+}
+
+function Board() {
+  const decor = useDecorTraces();
+  return (
+    <group>
+      {/* fibreglass and solder mask */}
+      <mesh position={[0, -0.12, 0]}>
+        <boxGeometry args={[BOARD_W, 0.22, BOARD_D]} />
+        <meshStandardMaterial color={MASK} roughness={0.85} metalness={0.05} />
+      </mesh>
+      {/* board edge highlight */}
+      <mesh position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[BOARD_W - 0.3, BOARD_D - 0.3]} />
+        <meshBasicMaterial color="#0f2429" transparent opacity={0.55} />
+      </mesh>
+
+      {/* mounting holes */}
+      {[
+        [-BOARD_W / 2 + 0.7, -BOARD_D / 2 + 0.7],
+        [BOARD_W / 2 - 0.7, -BOARD_D / 2 + 0.7],
+        [-BOARD_W / 2 + 0.7, BOARD_D / 2 - 0.7],
+        [BOARD_W / 2 - 0.7, BOARD_D / 2 - 0.7],
+      ].map(([x, z]) => (
+        <mesh
+          key={`${x}${z}`}
+          position={[x, 0.01, z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <ringGeometry args={[0.22, 0.38, 28]} />
+          <meshStandardMaterial
+            color={COPPER}
+            metalness={0.8}
+            roughness={0.25}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+
+      {decor.map((t, i) => (
+        <Trace key={i} from={t.from} to={t.to} width={0.05} glow={0.05} />
+      ))}
+
+      {/* the data bus: time runs left to right */}
+      <Trace
+        from={[-10.8, BUS_Z - 0.18]}
+        to={[10.8, BUS_Z - 0.18]}
+        width={0.12}
+        glow={0.3}
+      />
+      <Trace
+        from={[-10.8, BUS_Z + 0.18]}
+        to={[10.8, BUS_Z + 0.18]}
+        width={0.12}
+        glow={0.3}
+      />
+
+      {stations.map((s) => (
+        <group key={s.id}>
+          <Trace
+            from={[s.x, BUS_Z]}
+            to={[s.x, s.z - Math.sign(s.z) * 0.9]}
+            width={0.1}
+            glow={0.22}
+          />
+          <Via x={s.x} z={BUS_Z} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/* ----------------------------------------------------------- signal flow */
+
+function Pulse({
+  path,
+  speed,
+  offset,
+  color,
+  reduce,
+}: {
+  path: THREE.Vector3[];
+  speed: number;
+  offset: number;
+  color: string;
+  reduce: boolean;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  const curve = useMemo(
+    () => new THREE.CatmullRomCurve3(path, false, "catmullrom", 0),
+    [path],
+  );
+  useFrame(({ clock }) => {
+    if (!ref.current || reduce) return;
+    const t = (clock.getElapsedTime() * speed + offset) % 1;
+    ref.current.position.copy(curve.getPointAt(t));
+    const m = ref.current.material as THREE.MeshBasicMaterial;
+    m.opacity = Math.sin(t * Math.PI);
+  });
+  if (reduce) return null;
+  return (
+    <mesh ref={ref}>
+      <sphereGeometry args={[0.1, 12, 12]} />
+      <meshBasicMaterial color={color} transparent toneMapped={false} />
+    </mesh>
+  );
+}
+
+function Signals({ reduce }: { reduce: boolean }) {
+  const busA = useMemo(
+    () => [
+      new THREE.Vector3(-10.8, 0.08, BUS_Z - 0.18),
+      new THREE.Vector3(10.8, 0.08, BUS_Z - 0.18),
+    ],
+    [],
+  );
+  const busB = useMemo(
+    () => [
+      new THREE.Vector3(10.8, 0.08, BUS_Z + 0.18),
+      new THREE.Vector3(-10.8, 0.08, BUS_Z + 0.18),
+    ],
+    [],
+  );
+  const stubs = useMemo(
+    () =>
+      stations.map((s) => ({
+        id: s.id,
+        color: groupColor[s.group],
+        path: [
+          new THREE.Vector3(s.x, 0.08, BUS_Z),
+          new THREE.Vector3(s.x, 0.08, s.z - Math.sign(s.z) * 0.9),
+        ],
+      })),
+    [],
+  );
+  return (
+    <group>
+      {[0, 0.33, 0.66].map((o) => (
+        <Pulse
+          key={`a${o}`}
+          path={busA}
+          speed={0.09}
+          offset={o}
+          color="#4d8dff"
+          reduce={reduce}
+        />
+      ))}
+      {[0.15, 0.5, 0.85].map((o) => (
+        <Pulse
+          key={`b${o}`}
+          path={busB}
+          speed={0.07}
+          offset={o}
+          color="#27e0c4"
+          reduce={reduce}
+        />
+      ))}
+      {stubs.map((s, i) => (
+        <Pulse
+          key={s.id}
+          path={s.path}
+          speed={0.35}
+          offset={i * 0.17}
+          color={s.color}
+          reduce={reduce}
+        />
+      ))}
+    </group>
+  );
+}
+
+/* ----------------------------------------------------------------- chips */
+
+function Chip({
+  station,
+  hovered,
+  active,
+  visited,
+  compact,
+  onHover,
+  onPick,
+}: {
+  station: Station;
+  hovered: boolean;
+  active: boolean;
+  visited: boolean;
+  compact: boolean;
+  onHover: (id: string | null) => void;
+  onPick: (id: string) => void;
+}) {
+  const pad = useRef<THREE.MeshBasicMaterial>(null);
+  const body = useRef<THREE.Group>(null);
+  const color = groupColor[station.group];
+  const lit = hovered || active;
+
+  useFrame(({ clock }, delta) => {
+    if (pad.current) {
+      const base = lit ? 0.55 : visited ? 0.28 : 0.14;
+      pad.current.opacity =
+        base + Math.sin(clock.getElapsedTime() * 2 + station.x) * 0.05;
+    }
+    if (body.current) {
+      const targetY = lit ? 0.22 : 0.17;
+      body.current.position.y +=
+        (targetY - body.current.position.y) * Math.min(1, delta * 10);
+    }
+  });
+
+  const pins = [-0.72, -0.43, -0.14, 0.14, 0.43, 0.72];
+
+  return (
+    <group position={[station.x, 0, station.z]}>
+      {/* footprint glow */}
+      <mesh position={[0, 0.015, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[2.9, 2.2]} />
+        <meshBasicMaterial
+          ref={pad}
+          color={color}
+          transparent
+          opacity={0.15}
+          toneMapped={false}
+        />
+      </mesh>
+
+      <group
+        ref={body}
+        position={[0, 0.17, 0]}
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          onHover(station.id);
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          onHover(null);
+          document.body.style.cursor = "";
+        }}
+        onClick={(e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation();
+          onPick(station.id);
+        }}
+      >
+        <mesh>
+          <boxGeometry args={[2, 0.3, 1.45]} />
+          <meshStandardMaterial
+            color="#12161c"
+            roughness={0.55}
+            metalness={0.2}
+            emissive={color}
+            emissiveIntensity={lit ? 0.12 : 0}
+          />
+        </mesh>
+        {/* pin 1 dot */}
+        <mesh position={[-0.75, 0.152, -0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.07, 16]} />
+          <meshBasicMaterial color="#2a2f36" />
+        </mesh>
+        {pins.map((px) => (
+          <group key={px}>
+            <mesh position={[px, -0.1, 0.8]}>
+              <boxGeometry args={[0.12, 0.05, 0.2]} />
+              <meshStandardMaterial
+                color="#b9c0c8"
+                metalness={0.9}
+                roughness={0.25}
+              />
+            </mesh>
+            <mesh position={[px, -0.1, -0.8]}>
+              <boxGeometry args={[0.12, 0.05, 0.2]} />
+              <meshStandardMaterial
+                color="#b9c0c8"
+                metalness={0.9}
+                roughness={0.25}
+              />
+            </mesh>
+          </group>
+        ))}
+
+        <Html
+          center
+          position={[0, 0.2, 0]}
+          distanceFactor={compact ? 16 : 11}
+          zIndexRange={[20, 0]}
+          style={{ pointerEvents: "none" }}
+        >
+          <div className="flex flex-col items-center whitespace-nowrap select-none">
+            <span className="font-mono text-[11px] font-semibold tracking-wider text-white/90">
+              {station.chip}
+            </span>
+          </div>
+        </Html>
+      </group>
+
+      {/* silkscreen label beside the part; phones get the panel instead */}
+      {!compact && (
+        <Html
+          center
+          position={[0, 0.05, Math.sign(station.z) * 1.55]}
+          distanceFactor={compact ? 16 : 11}
+          zIndexRange={[10, 0]}
+          style={{ pointerEvents: "none" }}
+        >
+          <div
+            className={`whitespace-nowrap text-center font-sans transition-all duration-300 select-none ${lit ? "scale-110" : ""}`}
+            style={{ color: lit ? color : "rgba(238,242,246,0.8)" }}
+          >
+            <div className="text-[13px] font-semibold tracking-tight">
+              {station.title}
+            </div>
+            <div className="font-mono text-[10px] opacity-70">
+              {station.year}
+            </div>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
+/* ----------------------------------------------------------------- robot */
+
+function Robot({
+  driveTo,
+  reduce,
+  onArrive,
+}: {
+  driveTo: string | null;
+  reduce: boolean;
+  onArrive: (id: string) => void;
+}) {
+  const group = useRef<THREE.Group>(null);
+  const cone = useRef<THREE.Mesh>(null);
+  const wheels = useRef<THREE.Mesh[]>([]);
+  const path = useRef<THREE.Vector3[]>([]);
+  const goal = useRef<string | null>(null);
+  const start = stations[0];
+  const pos = useRef(new THREE.Vector3(start.x, 0, BUS_Z));
+  const heading = useRef(0);
+
+  // plan a route along the copper: down the stub, along the bus, up the next stub
+  useEffect(() => {
+    if (!driveTo || driveTo === goal.current) return;
+    const target = stations.find((s) => s.id === driveTo);
+    if (!target) return;
+    goal.current = driveTo;
+    const stop = target.z - Math.sign(target.z) * 2.05;
+    const p = pos.current;
+    path.current = [
+      new THREE.Vector3(p.x, 0, BUS_Z),
+      new THREE.Vector3(target.x, 0, BUS_Z),
+      new THREE.Vector3(target.x, 0, stop),
+    ];
+  }, [driveTo]);
+
+  useFrame(({ clock }, delta) => {
+    const g = group.current;
+    if (!g) return;
+    const speed = reduce ? 1000 : 5.2;
+    let moving = false;
+
+    if (path.current.length) {
+      const next = path.current[0];
+      const to = next.clone().sub(pos.current);
+      const dist = to.length();
+      const step = speed * Math.min(delta, 0.1);
+      if (dist <= step || dist < 0.001) {
+        pos.current.copy(next);
+        path.current.shift();
+        if (!path.current.length && goal.current) onArrive(goal.current);
+      } else {
+        moving = true;
+        to.normalize();
+        pos.current.addScaledVector(to, step);
+        const want = Math.atan2(to.x, to.z);
+        let diff = want - heading.current;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        heading.current += diff * Math.min(1, delta * (reduce ? 100 : 9));
+      }
+    }
+
+    g.position.set(pos.current.x, 0, pos.current.z);
+    g.rotation.y = heading.current;
+    // a little suspension bob while it drives
+    g.position.y =
+      moving && !reduce
+        ? Math.abs(Math.sin(clock.getElapsedTime() * 18)) * 0.025
+        : 0;
+    wheels.current.forEach(
+      (w) => w && (w.rotation.x += moving ? delta * 12 : 0),
+    );
+    if (cone.current) {
+      const m = cone.current.material as THREE.MeshBasicMaterial;
+      m.opacity = reduce
+        ? 0.14
+        : 0.1 + Math.abs(Math.sin(clock.getElapsedTime() * 3)) * 0.12;
+    }
+  });
+
+  const wheelPos: [number, number, number][] = [
+    [-0.42, 0.14, 0.3],
+    [0.42, 0.14, 0.3],
+    [-0.42, 0.14, -0.3],
+    [0.42, 0.14, -0.3],
+  ];
+
+  return (
+    <group ref={group}>
+      {/* chassis */}
+      <mesh position={[0, 0.26, 0]}>
+        <boxGeometry args={[0.66, 0.14, 0.95]} />
+        <meshStandardMaterial color="#1c222b" roughness={0.5} metalness={0.3} />
+      </mesh>
+      {/* top plate with the battery pack */}
+      <mesh position={[0, 0.39, -0.05]}>
+        <boxGeometry args={[0.5, 0.1, 0.55]} />
+        <meshStandardMaterial color="#e25b2c" roughness={0.6} />
+      </mesh>
+      {/* ultrasonic eyes */}
+      {[-0.13, 0.13].map((x) => (
+        <mesh key={x} position={[x, 0.32, 0.5]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.075, 0.075, 0.08, 20]} />
+          <meshStandardMaterial
+            color="#cfd6de"
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+      ))}
+      {/* status led */}
+      <mesh position={[0.2, 0.46, -0.25]}>
+        <sphereGeometry args={[0.035, 10, 10]} />
+        <meshBasicMaterial color="#27e0c4" toneMapped={false} />
+      </mesh>
+      {/* yellow wheels, like the real one */}
+      {wheelPos.map((p, i) => (
+        <mesh
+          key={i}
+          position={p}
+          rotation={[0, 0, Math.PI / 2]}
+          ref={(m) => {
+            if (m) wheels.current[i] = m;
+          }}
+        >
+          <cylinderGeometry args={[0.14, 0.14, 0.12, 18]} />
+          <meshStandardMaterial color="#f2c230" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* ultrasonic field of view */}
+      <mesh
+        ref={cone}
+        position={[0, 0.2, 1.35]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <coneGeometry args={[0.75, 1.7, 32, 1, true]} />
+        <meshBasicMaterial
+          color="#27e0c4"
+          transparent
+          opacity={0.16}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+/* ----------------------------------------------------------------- scene */
+
+export default function BoardScene(props: SceneProps) {
+  const { compact } = props;
+  const [ready, setReady] = useState(false);
+
+  return (
+    <Canvas
+      className={`transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
+      dpr={[1, 1.75]}
+      gl={{ antialias: true, alpha: true }}
+      camera={{
+        position: compact ? [0, 34, 17] : [0, 19, 18.5],
+        fov: compact ? 46 : 40,
+      }}
+      onCreated={() => setReady(true)}
+      onPointerMissed={() => props.onHover(null)}
+    >
+      <fog
+        attach="fog"
+        args={["#06090e", compact ? 36 : 28, compact ? 70 : 52]}
+      />
+      <ambientLight intensity={0.55} />
+      <directionalLight position={[6, 14, 8]} intensity={1.3} />
+      <pointLight
+        position={[-8, 6, -4]}
+        intensity={18}
+        color="#4d8dff"
+        distance={22}
+      />
+      <pointLight
+        position={[8, 6, 5]}
+        intensity={14}
+        color="#27e0c4"
+        distance={22}
+      />
+
+      {/* portrait screens get the board turned so time runs top to bottom */}
+      <group rotation={[0, compact ? -Math.PI / 2 : 0, 0]}>
+        <Board />
+        <Signals reduce={props.reduce} />
+        {stations.map((s) => (
+          <Chip
+            key={s.id}
+            station={s}
+            hovered={props.hovered === s.id}
+            active={props.active === s.id}
+            visited={props.visited.has(s.id)}
+            compact={compact}
+            onHover={props.onHover}
+            onPick={props.onPick}
+          />
+        ))}
+        <Robot
+          driveTo={props.driveTo}
+          reduce={props.reduce}
+          onArrive={props.onArrive}
+        />
+      </group>
+
+      <OrbitControls
+        enablePan={false}
+        enableDamping
+        dampingFactor={0.08}
+        minDistance={compact ? 24 : 14}
+        maxDistance={compact ? 56 : 36}
+        minPolarAngle={0.35}
+        maxPolarAngle={1.12}
+        minAzimuthAngle={-0.7}
+        maxAzimuthAngle={0.7}
+        target={compact ? [0, 0, 3.2] : [0, 0, 2.2]}
+      />
+    </Canvas>
+  );
+}
