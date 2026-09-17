@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LabSwitcher } from "@/components/story/lab";
 import { StoryChat } from "@/components/story/story-chat";
+import { StoryCruise } from "@/components/story/story-cruise";
 import { StoryDrive } from "@/components/story/story-drive";
 import { StoryFilm } from "@/components/story/story-film";
 import { StoryWatch } from "@/components/story/story-watch";
 
-const STYLES = ["film", "drive", "chat", "watch"] as const;
+const STYLES = ["film", "drive", "cruise", "chat", "watch"] as const;
 type Style = (typeof STYLES)[number];
 
 export const dynamicParams = false;
@@ -30,6 +31,7 @@ export default async function StoryPrototype({ params }: { params: Promise<{ sty
       <LabSwitcher />
       {style === "film" && <StoryFilm />}
       {style === "drive" && <StoryDrive />}
+      {style === "cruise" && <StoryCruise />}
       {style === "chat" && <StoryChat />}
       {style === "watch" && <StoryWatch />}
     </>

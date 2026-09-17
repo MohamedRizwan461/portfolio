@@ -21,7 +21,7 @@ function useMaterials(accent: string) {
 type Mats = ReturnType<typeof useMaterials>;
 
 /** The headshot with its straight-cut chin faded out, so it sits in the collar cleanly. */
-function useFace(src: string) {
+export function useFace(src: string) {
   const [tex, setTex] = useState<THREE.CanvasTexture | null>(null);
   useEffect(() => {
     const img = new Image();
@@ -49,7 +49,7 @@ function useFace(src: string) {
 }
 
 /** A plane bent slightly around the head, so turning never looks like a cardboard cutout. */
-function useCurvedPlane(w: number, h: number, radius: number) {
+export function useCurvedPlane(w: number, h: number, radius: number) {
   return useMemo(() => {
     const g = new THREE.PlaneGeometry(w, h, 32, 1);
     const p = g.attributes.position;

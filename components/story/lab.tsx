@@ -22,7 +22,8 @@ export function useAccent(fallback = "#3fa9ff") {
 
 const styles = [
   { href: "/story/film", key: "A", label: "Scroll film" },
-  { href: "/story/drive", key: "B", label: "Drive game" },
+  { href: "/story/drive", key: "B", label: "Drive 2D" },
+  { href: "/story/cruise", key: "B+", label: "Drive 3D" },
   { href: "/story/chat", key: "C", label: "Chat" },
   { href: "/story/watch", key: "D", label: "Animated film" },
 ];
