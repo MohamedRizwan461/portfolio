@@ -104,7 +104,7 @@ p {
 
 /* ---- backdrop ---- */
 
-/* the warm oxblood glow the whole site sits in, whatever the mode */
+/* the glow the whole site sits in: muted blue, red or amber with the operator */
 .bd-warm {
   position: absolute;
   border-radius: 50%;
@@ -116,8 +116,9 @@ p {
   left: -25vw;
   width: 110vw;
   height: 110vw;
-  background: radial-gradient(circle at 50% 50%, var(--warm, rgba(150, 66, 72, 0.3)), transparent 68%);
+  background: radial-gradient(circle at 50% 50%, var(--warm, rgba(66, 124, 174, 0.27)), transparent 68%);
   animation: bd-drift-a 36s ease-in-out infinite alternate;
+  transition: background 900ms ease;
 }
 
 .bd-warm-b {
@@ -125,8 +126,9 @@ p {
   bottom: -50vh;
   width: 90vw;
   height: 90vw;
-  background: radial-gradient(circle at 50% 50%, var(--warm-2, rgba(130, 56, 62, 0.22)), transparent 64%);
+  background: radial-gradient(circle at 50% 50%, var(--warm-2, rgba(66, 124, 174, 0.2)), transparent 64%);
   animation: bd-drift-b 46s ease-in-out infinite alternate;
+  transition: background 900ms ease;
 }
 
 @keyframes bd-drift-a {
@@ -134,12 +136,6 @@ p {
   to { transform: translate3d(8vw, 10vh, 0) scale(1.12); }
 }
 
-html[data-scheme="light"] .bd-warm-a {
-  background: radial-gradient(circle at 50% 50%, rgba(214, 72, 78, 0.16), transparent 62%);
-}
-html[data-scheme="light"] .bd-warm-b {
-  background: radial-gradient(circle at 50% 50%, rgba(214, 72, 78, 0.1), transparent 60%);
-}
 
 /* a soft key light from above, in the operator's colour */
 .bd-light {

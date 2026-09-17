@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The room the site lives in: near-black warmed by a slow oxblood glow, a soft
+ * The room the site lives in: near-black lit by a slow glow in the operator's colour, a soft
  * key light from above in the operator's colour, an engineering grid, film grain
  * and a vignette. Pure CSS, and it holds still under reduced motion.
  */

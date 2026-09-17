@@ -387,6 +387,13 @@ function hexToRgba(hex: string, a: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
+/** The operator's colour, muted toward grey, for the background glow. */
+function glow(hex: string, a: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const mute = (c: number, g: number) => Math.round(c * 0.55 + g * 0.45);
+  return `rgba(${mute((n >> 16) & 255, 70)}, ${mute((n >> 8) & 255, 70)}, ${mute(n & 255, 75)}, ${a})`;
+}
+
 export function readThemeChoice(): { theme: Theme; scheme: Scheme } {
   let theme = DEFAULT_THEME;
   let scheme: Scheme = "dark";
@@ -420,6 +427,8 @@ export function applyTheme(theme: Theme, scheme: Scheme, mode: ModeId) {
   set("--accent-soft", hexToRgba(accent, scheme === "light" ? 0.12 : 0.14));
   set("--field-a", theme.finish === "matte" ? "rgba(0,0,0,0)" : hexToRgba(accent, scheme === "light" ? 0.18 : 0.3));
   set("--field-b", t.fieldB);
+  set("--warm", glow(accent, scheme === "light" ? 0.16 : 0.27));
+  set("--warm-2", glow(accent, scheme === "light" ? 0.1 : 0.2));
   root.style.colorScheme = scheme;
   root.dataset.finish = theme.finish;
   root.dataset.scheme = scheme;
