@@ -23,7 +23,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
   }, [card, onClose]);
 
   const ctaClass =
-    "ease inline-flex items-center gap-2 bg-ink px-5 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white";
+    "ease inline-flex items-center gap-2 bg-ink px-5 py-2.5 text-sm font-semibold text-[var(--ground)] no-underline hover:opacity-90";
 
   return (
     <AnimatePresence>
@@ -46,14 +46,14 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.4, ease: EASE }}
-            className="relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-white/10 bg-[#0b111b] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)]"
+            className="relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-rule bg-[var(--surface)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)]"
           >
             <button
               ref={closeBtn}
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#0b111b]/80 text-ink hover:bg-black"
+              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--surface)_85%,transparent)] text-ink hover:bg-[var(--surface-2)]"
             >
               <X size={16} weight="bold" />
             </button>
@@ -61,7 +61,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
             {/* header media */}
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               <CardThumb thumb={card.thumb} playing={!reduce} large accent={accent} />
-              <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0b111b] via-[#0b111b]/20 to-transparent" />
+              <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[color-mix(in_srgb,var(--surface)_25%,transparent)] to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
                 <h2 className="text-2xl leading-tight font-semibold tracking-tight sm:text-4xl">{card.title}</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -87,7 +87,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
               <div>
                 <p className="flex flex-wrap items-center gap-2 text-sm">
                   {card.badges.map((b) => (
-                    <span key={b} className="px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold text-[#05080d] uppercase" style={{ background: accent }}>
+                    <span key={b} className="px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold text-[var(--accent-ink)] uppercase" style={{ background: accent }}>
                       {b}
                     </span>
                   ))}

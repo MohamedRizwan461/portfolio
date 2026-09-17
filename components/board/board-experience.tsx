@@ -12,15 +12,17 @@ import {
   CursorClick,
   DownloadSimple,
   ListBullets,
+  Moon,
   PlayCircle,
   SpeakerHigh,
   SpeakerSlash,
+  Sun,
   X,
 } from "@phosphor-icons/react/dist/ssr";
 import { cards, type Card } from "@/lib/cards";
 import { site } from "@/lib/content";
 import { MODE_STORAGE_KEY, modes, type ModeId } from "@/lib/modes";
-import { DEFAULT_PALETTE, PALETTE_STORAGE_KEY, palettes, type Palette } from "@/lib/palettes";
+import { applyTheme, DEFAULT_THEME, readThemeChoice, SCHEME_STORAGE_KEY, THEME_STORAGE_KEY, themes, type Scheme, type Theme } from "@/lib/themes";
 import { markStationSeen } from "@/lib/progress";
 import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { stations } from "@/lib/stations";
@@ -62,10 +64,6 @@ function useCompact() {
   return compact;
 }
 
-function hexToRgba(hex: string, a: number) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
-}
 
 /** A CAN rolling counter ticking in the corner, because every good bus has one. */
 function BusStatus() {
@@ -100,7 +98,8 @@ export function BoardExperience() {
   const [sound, setSound] = useState(true);
   const [hint, setHint] = useState(true);
   const [seenTick, setSeenTick] = useState(0);
-  const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
+  const [scheme, setScheme] = useState<Scheme>("dark");
   const [showPalettes, setShowPalettes] = useState(false);
   const [palettesOpen, setPalettesOpen] = useState(true);
   const userDriven = useRef(false);
@@ -109,7 +108,9 @@ export function BoardExperience() {
   const parkedAt = useRef<string | null>("biology");
 
   const modeConfig = modes.find((m) => m.id === mode) ?? modes[0];
-  const accent = palette.accents[modeConfig.id];
+  const tokens = theme[scheme];
+  const accent = tokens.accents[modeConfig.id];
+  const palette = useMemo(() => ({ ...tokens, finish: theme.finish }), [tokens, theme.finish]);
   const route = modeConfig.route;
 
   // first visit powers on and asks who is operating; returning visitors keep their mode
@@ -124,47 +125,49 @@ export function BoardExperience() {
     const replay = params.has("boot");
     // palette trial: available locally or with ?palettes
     try {
-      const savedPalette = palettes.find((pl) => pl.id === window.localStorage.getItem(PALETTE_STORAGE_KEY));
-      if (savedPalette) setPalette(savedPalette);
+      const choice = readThemeChoice();
+      setTheme(choice.theme);
+      setScheme(choice.scheme);
     } catch {}
     setShowPalettes(params.has("palettes") || window.location.hostname === "localhost");
     if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
     if (replay || !saved) setIntro("gate");
   }, []);
 
-  // the whole page, backdrop included, takes the operator's colour
+  // the whole site, backdrop included, takes the theme and the operator's colour
   useEffect(() => {
-    const root = document.documentElement.style;
-    root.setProperty("--accent", accent);
-    root.setProperty("--accent-soft", hexToRgba(accent, 0.14));
-    root.setProperty("--field-a", hexToRgba(accent, 0.55));
-    root.setProperty("--field-b", palette.fieldB);
-    root.setProperty("--ground", palette.ground);
-    return () => {
-      ["--accent", "--accent-soft", "--field-a", "--field-b", "--ground"].forEach((v) => root.removeProperty(v));
-    };
-  }, [accent, palette]);
+    applyTheme(theme, scheme, modeConfig.id);
+  }, [theme, scheme, modeConfig.id]);
 
-  const choosePalette = useCallback((pl: Palette) => {
-    setPalette(pl);
+  const chooseTheme = useCallback((t: Theme) => {
+    setTheme(t);
     try {
-      window.localStorage.setItem(PALETTE_STORAGE_KEY, pl.id);
+      window.localStorage.setItem(THEME_STORAGE_KEY, t.id);
     } catch {}
   }, []);
 
-  // P cycles palettes while trying them on
+  const chooseScheme = useCallback((sc: Scheme) => {
+    setScheme(sc);
+    try {
+      window.localStorage.setItem(SCHEME_STORAGE_KEY, sc);
+    } catch {}
+  }, []);
+
+  // P cycles themes, L flips light and dark, while trying them on
   useEffect(() => {
     if (!showPalettes) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "p" && e.key !== "P") return;
       const target = e.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return;
-      const i = palettes.findIndex((pl) => pl.id === palette.id);
-      choosePalette(palettes[(i + 1) % palettes.length]);
+      if (e.key === "p" || e.key === "P") {
+        const i = themes.findIndex((t) => t.id === theme.id);
+        chooseTheme(themes[(i + 1) % themes.length]);
+      }
+      if (e.key === "l" || e.key === "L") chooseScheme(scheme === "dark" ? "light" : "dark");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [showPalettes, palette, choosePalette]);
+  }, [showPalettes, theme, scheme, chooseTheme, chooseScheme]);
 
   const openStation = useCallback((id: string) => {
     const card = cards[CARD_FOR_STATION[id]];
@@ -273,7 +276,7 @@ export function BoardExperience() {
             key={intro}
             start={intro}
             current={mode}
-            accents={palette.accents}
+            accents={tokens.accents}
             onSelect={selectMode}
             onDismiss={mode ? () => setIntro(null) : undefined}
           />
@@ -358,7 +361,7 @@ export function BoardExperience() {
           <a
             href={site.resumePdf}
             download
-            className={`ease flex items-center gap-2 border px-3.5 py-2 text-sm font-semibold text-[#05080d] no-underline hover:brightness-110 ${
+            className={`ease flex items-center gap-2 border px-3.5 py-2 text-sm font-semibold text-[var(--accent-ink)] no-underline hover:brightness-110 ${
               mode === "recruiter" ? "motion-safe:animate-[resume-glow_2.2s_ease-out_infinite]" : ""
             }`}
             style={{ background: accent, borderColor: accent }}
@@ -390,7 +393,7 @@ export function BoardExperience() {
               <a
                 href={modeConfig.primary.href}
                 {...(modeConfig.primary.download ? { download: true } : { target: "_blank", rel: "noopener" })}
-                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white sm:px-5 sm:text-base"
+                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[var(--ground)] no-underline hover:opacity-90 sm:px-5 sm:text-base"
               >
                 {modeConfig.primary.download ? <DownloadSimple size={18} weight="bold" /> : <ArrowUpRight size={18} weight="bold" />}
                 {modeConfig.primary.label}
@@ -398,7 +401,7 @@ export function BoardExperience() {
             ) : (
               <Link
                 href={modeConfig.primary.href}
-                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white sm:px-5 sm:text-base"
+                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[var(--ground)] no-underline hover:opacity-90 sm:px-5 sm:text-base"
               >
                 <PlayCircle size={18} weight="fill" /> {modeConfig.primary.label}
               </Link>
@@ -408,14 +411,14 @@ export function BoardExperience() {
                 href={modeConfig.secondary.href}
                 target="_blank"
                 rel="noopener"
-                className="ease flex items-center gap-2 bg-white/15 px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-white/25 sm:px-5 sm:text-base"
+                className="ease flex items-center gap-2 bg-[color-mix(in_srgb,var(--ink)_13%,transparent)] px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-[color-mix(in_srgb,var(--ink)_22%,transparent)] sm:px-5 sm:text-base"
               >
                 {modeConfig.secondary.label} <ArrowUpRight size={16} weight="bold" />
               </a>
             ) : (
               <Link
                 href={modeConfig.secondary.href}
-                className="ease flex items-center gap-2 bg-white/15 px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-white/25 sm:px-5 sm:text-base"
+                className="ease flex items-center gap-2 bg-[color-mix(in_srgb,var(--ink)_13%,transparent)] px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-[color-mix(in_srgb,var(--ink)_22%,transparent)] sm:px-5 sm:text-base"
               >
                 {modeConfig.secondary.label} <ArrowRight size={16} weight="bold" />
               </Link>
@@ -488,48 +491,76 @@ export function BoardExperience() {
         >
           <span className="flex gap-1">
             {(["recruiter", "engineer", "curious"] as const).map((m) => (
-              <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: palette.accents[m] }} />
+              <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: tokens.accents[m] }} />
             ))}
           </span>
-          Palettes
+          Themes
         </button>
       )}
 
       {showPalettes && !intro && palettesOpen && (
         <aside
-          aria-label="Try colour palettes"
-          className="absolute top-20 right-4 z-40 w-[17rem] border border-rule bg-[color-mix(in_srgb,var(--ground)_92%,transparent)] p-3 backdrop-blur sm:right-6"
+          aria-label="Try colour themes"
+          className="absolute top-20 right-4 z-40 flex max-h-[calc(100dvh-6.5rem)] w-[19rem] flex-col border border-rule bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] p-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] backdrop-blur sm:right-6"
         >
-          <p className="flex items-center justify-between text-xs font-semibold tracking-[0.15em] text-ink-2 uppercase">
-            Try a palette
+          <div className="flex items-center justify-between text-xs font-semibold tracking-[0.15em] text-ink-2 uppercase">
+            Try a theme
             <span className="flex items-center gap-2 font-mono tracking-normal normal-case">
-              press P
-              <button type="button" onClick={() => setPalettesOpen(false)} aria-label="Hide palettes" className="text-ink-2 hover:text-ink">
+              P theme · L light
+              <button type="button" onClick={() => setPalettesOpen(false)} aria-label="Hide themes" className="text-ink-2 hover:text-ink">
                 <X size={14} />
               </button>
             </span>
-          </p>
-          <ul className="mt-2 space-y-1.5">
-            {palettes.map((pl, i) => {
-              const on = pl.id === palette.id;
+          </div>
+
+          {/* light and dark */}
+          <div className="mt-2.5 grid grid-cols-2 border border-rule p-0.5" role="radiogroup" aria-label="Light or dark">
+            {(["dark", "light"] as const).map((sc) => (
+              <button
+                key={sc}
+                type="button"
+                role="radio"
+                aria-checked={scheme === sc}
+                onClick={() => chooseScheme(sc)}
+                className="flex items-center justify-center gap-2 py-1.5 text-sm font-medium transition-colors"
+                style={scheme === sc ? { background: accent, color: "var(--accent-ink)" } : { color: "var(--ink-2)" }}
+              >
+                {sc === "dark" ? <Moon size={15} weight="fill" /> : <Sun size={15} weight="fill" />}
+                {sc === "dark" ? "Dark" : "Light"}
+              </button>
+            ))}
+          </div>
+
+          <ul className="mt-2.5 min-h-0 space-y-1.5 overflow-y-auto pr-0.5">
+            {themes.map((t, i) => {
+              const on = t.id === theme.id;
+              const tk = t[scheme];
+              const first = i === 0 || Boolean(themes[i - 1].favourite) !== Boolean(t.favourite);
               return (
-                <li key={pl.id}>
+                <li key={t.id}>
+                  {first && (
+                    <p className="mt-1 mb-1.5 text-[0.7rem] font-semibold tracking-[0.12em] text-ink-2 uppercase">
+                      {t.favourite ? "Your favourites" : "More to try"}
+                    </p>
+                  )}
                   <button
                     type="button"
-                    onClick={() => choosePalette(pl)}
-                    title={pl.line}
+                    onClick={() => chooseTheme(t)}
+                    title={t.line}
                     className="flex w-full items-center gap-2.5 border px-2.5 py-2 text-left transition-colors"
-                    style={{ borderColor: on ? accent : "rgba(255,255,255,0.08)", background: on ? "rgba(255,255,255,0.06)" : "transparent" }}
+                    style={{ borderColor: on ? accent : "var(--rule)", background: on ? "var(--accent-soft)" : "transparent" }}
                   >
-                    <span className="font-mono text-xs text-ink-2">{i + 1}</span>
-                    <span className="flex h-6 w-9 shrink-0 overflow-hidden border border-white/15">
-                      <span className="w-1/2" style={{ background: pl.ground }} />
-                      <span className="w-1/2" style={{ background: pl.board }} />
+                    <span className="flex h-7 w-10 shrink-0 overflow-hidden border border-rule">
+                      <span className="w-1/2" style={{ background: tk.ground }} />
+                      <span className="w-1/2" style={{ background: tk.board }} />
                     </span>
-                    <span className="flex-1 text-sm text-ink">{pl.name}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-ink">{t.name}</span>
+                      <span className="block font-mono text-[0.65rem] tracking-wide text-ink-2 uppercase">{t.finish}</span>
+                    </span>
                     <span className="flex gap-1">
                       {(["recruiter", "engineer", "curious"] as const).map((m) => (
-                        <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: pl.accents[m] }} />
+                        <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: tk.accents[m] }} />
                       ))}
                     </span>
                   </button>
@@ -537,7 +568,7 @@ export function BoardExperience() {
               );
             })}
           </ul>
-          <p className="mt-2 text-xs leading-snug text-ink-2">{palette.line}</p>
+          <p className="mt-2.5 border-t border-rule pt-2 text-xs leading-snug text-ink-2">{theme.line}</p>
         </aside>
       )}
 

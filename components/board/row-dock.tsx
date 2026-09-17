@@ -61,7 +61,7 @@ export function RowDock({
               type="button"
               onClick={() => scroll(d as 1 | -1)}
               aria-label={d < 0 ? "Scroll row left" : "Scroll row right"}
-              className="ease flex h-8 w-8 items-center justify-center border border-rule bg-ground/70 text-ink backdrop-blur hover:border-accent"
+              className="ease flex h-8 w-8 items-center justify-center border border-rule bg-[var(--surface)] text-ink backdrop-blur hover:border-accent"
             >
               {d < 0 ? <CaretLeft size={14} weight="bold" /> : <CaretRight size={14} weight="bold" />}
             </button>
@@ -89,15 +89,15 @@ export function RowDock({
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0, scale: isHover && !reduce ? 1.06 : 1 }}
               transition={{ duration: 0.35, delay: reduce ? 0 : 0.25 + i * 0.05, ease: EASE }}
-              className="group relative w-[11.5rem] shrink-0 snap-start overflow-hidden border border-white/10 bg-[#0d1522] text-left shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9)] outline-none focus-visible:ring-2 sm:w-[14.5rem]"
+              className="group relative w-[11.5rem] shrink-0 snap-start overflow-hidden border border-rule bg-[var(--surface)] text-left shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9)] outline-none focus-visible:ring-2 sm:w-[14.5rem]"
               style={{ zIndex: isHover ? 5 : 1, borderColor: isHover ? accent : undefined }}
             >
               <span className="relative block aspect-video overflow-hidden">
                 <CardThumb thumb={card.thumb} playing={isHover && !reduce} accent={accent} />
-                <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0a111c] via-transparent to-transparent" />
+                <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent" />
                 {card.badges[0] && (
                   <span
-                    className="absolute top-1.5 left-1.5 px-1.5 py-0.5 font-mono text-[0.6rem] font-semibold tracking-wide text-[#05080d] uppercase"
+                    className="absolute top-1.5 left-1.5 px-1.5 py-0.5 font-mono text-[0.6rem] font-semibold tracking-wide text-[var(--accent-ink)] uppercase"
                     style={{ background: accent }}
                   >
                     {card.badges[0]}
@@ -109,7 +109,7 @@ export function RowDock({
                 <span className="mt-0.5 line-clamp-1 block text-xs text-ink-2">{card.meta}</span>
               </span>
               {p !== undefined && p > 0 && (
-                <span className="absolute inset-x-0 bottom-0 h-1 bg-white/15" aria-label={`${Math.round(p * 100)}% seen`}>
+                <span className="absolute inset-x-0 bottom-0 h-1 bg-[var(--rule-strong)]" aria-label={`${Math.round(p * 100)}% seen`}>
                   <span className="block h-full" style={{ width: `${Math.max(8, p * 100)}%`, background: accent }} />
                 </span>
               )}

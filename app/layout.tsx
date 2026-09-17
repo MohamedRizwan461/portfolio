@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Backdrop } from "@/components/backdrop";
 import { SiteHeader } from "@/components/site-header";
+import { ThemeApplier } from "@/components/theme-applier";
 import { ConditionalFooter } from "@/components/site-chrome";
 import { site } from "@/lib/content";
 import "./globals.css";
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col">
+        <ThemeApplier />
         <Backdrop />
         <script
           type="application/ld+json"

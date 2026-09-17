@@ -50,7 +50,7 @@ export function CardThumb({ thumb, playing = false, large = false, accent = "#4d
       return <img src={thumb.src} alt="" className="absolute inset-0 h-full w-full object-cover" />;
     case "canframe":
       return (
-        <div className="absolute inset-0 flex flex-col justify-center gap-2 bg-[#0d1726] p-3 font-mono">
+        <div className="absolute inset-0 flex flex-col justify-center gap-2 bg-[var(--surface-2)] p-3 font-mono">
           <span className="text-[0.65rem] text-ink-2">
             ID <span className="text-ink">0x18F00500</span> · DLC 8
           </span>
@@ -72,7 +72,7 @@ export function CardThumb({ thumb, playing = false, large = false, accent = "#4d
       );
     case "volt":
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#140f24] font-mono">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-2)] font-mono">
           <span className="text-3xl font-semibold tabular-nums" style={{ color: "#b18cff" }}>
             36.0<span className="text-lg"> V</span>
           </span>
@@ -81,13 +81,13 @@ export function CardThumb({ thumb, playing = false, large = false, accent = "#4d
       );
     case "github":
       return (
-        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#23324a,#0b1120)]">
+        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,var(--surface-2),var(--surface))]">
           <GithubLogo size={large ? 96 : 48} weight="fill" className="text-ink" aria-hidden />
         </div>
       );
     case "contact":
       return (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ background: `radial-gradient(circle at 30% 20%, ${accent}55, #0b1120 70%)` }}>
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: `radial-gradient(circle at 30% 20%, ${accent}55, var(--surface) 70%)` }}>
           <EnvelopeSimple size={large ? 96 : 48} weight="duotone" className="text-ink" aria-hidden />
         </div>
       );

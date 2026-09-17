@@ -130,7 +130,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
       role="dialog"
       aria-modal="true"
       aria-label={phase === "select" ? "Who's operating?" : "Power on"}
-      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[#05080f] px-4 py-10"
+      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[var(--ground)] px-4 py-10"
       initial={{ opacity: start === "select" ? 0 : 1 }}
       animate={{ opacity: leaving ? 0 : 1 }}
       transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
@@ -175,8 +175,8 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
                           key={i}
                           className="transition-[color,text-shadow] duration-200"
                           style={{
-                            color: on ? "#eaf2ff" : "rgba(234,242,255,0.16)",
-                            textShadow: on ? "0 0 18px rgba(77,141,255,0.9), 0 0 42px rgba(39,224,196,0.45)" : "none",
+                            color: on ? "var(--ink)" : "color-mix(in srgb, var(--ink) 16%, transparent)",
+                            textShadow: on ? "0 0 18px color-mix(in srgb, var(--accent) 90%, transparent), 0 0 42px color-mix(in srgb, var(--accent) 40%, transparent)" : "none",
                             whiteSpace: "pre",
                           }}
                         >
@@ -198,7 +198,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
                   initial={reduce ? false : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
-                  className="group relative mt-12 flex h-28 w-28 items-center justify-center rounded-full border-2 border-accent text-accent transition-colors hover:bg-accent hover:text-[#05080d] focus-visible:bg-accent focus-visible:text-[#05080d]"
+                  className="group relative mt-12 flex h-28 w-28 items-center justify-center rounded-full border-2 border-accent text-accent transition-colors hover:bg-accent hover:text-[var(--accent-ink)] focus-visible:bg-accent focus-visible:text-[var(--accent-ink)]"
                   aria-label="Power on"
                 >
                   <span aria-hidden className="absolute inset-0 rounded-full border-2 border-accent opacity-60 motion-safe:animate-ping" />
@@ -244,9 +244,9 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
                       }}
                       onFocus={() => setFocus(i)}
                       onClick={() => choose(m.id)}
-                      className="group flex w-full flex-row items-center gap-4 border-2 bg-[#0a101b] p-3 text-left transition-all duration-300 sm:flex-col sm:p-5 sm:text-center"
+                      className="group flex w-full flex-row items-center gap-4 border-2 bg-[var(--surface)] p-3 text-left transition-all duration-300 sm:flex-col sm:p-5 sm:text-center"
                       style={{
-                        borderColor: active ? m.accent : "rgba(255,255,255,0.1)",
+                        borderColor: active ? m.accent : "var(--rule)",
                         boxShadow: active ? `0 0 0 1px ${m.accent}, 0 20px 60px -20px ${m.accent}88` : "none",
                         transform: active && !reduce ? "translateY(-6px)" : "none",
                       }}

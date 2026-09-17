@@ -6,10 +6,10 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import * as THREE from "three";
 import { BUS_Z, groupColor, stations, type Station } from "@/lib/stations";
 import { RobotModel, type Accessory } from "./robot-model";
-import { DEFAULT_PALETTE, type Palette } from "@/lib/palettes";
+import { DEFAULT_THEME, type Finish, type Tokens } from "@/lib/themes";
 
 /** board colours come from the palette being tried on */
-const PaletteCtx = createContext<Palette>(DEFAULT_PALETTE);
+const PaletteCtx = createContext<Tokens & { finish: Finish }>({ ...DEFAULT_THEME.dark, finish: DEFAULT_THEME.finish });
 const BOARD_W = 24;
 const BOARD_D = 13;
 
@@ -21,7 +21,7 @@ export type SceneProps = {
   dimmed: Set<string>;
   accent: string;
   accessory: Accessory;
-  palette: Palette;
+  palette: Tokens & { finish: Finish };
   reduce: boolean;
   compact: boolean;
   onHover: (id: string | null) => void;
@@ -295,6 +295,8 @@ function Chip({
   onHover: (id: string | null) => void;
   onPick: (id: string) => void;
 }) {
+  const { boardInk, finish, board } = useContext(PaletteCtx);
+  const matte = finish === "matte";
   const pad = useRef<THREE.MeshBasicMaterial>(null);
   const body = useRef<THREE.Group>(null);
   const color = groupColor[station.group];
@@ -302,9 +304,9 @@ function Chip({
 
   useFrame(({ clock }, delta) => {
     if (pad.current) {
-      const base = lit ? 0.55 : dim ? 0.03 : visited ? 0.28 : 0.14;
+      const base = matte ? (lit ? 0.7 : dim ? 0.04 : 0.32) : lit ? 0.55 : dim ? 0.03 : visited ? 0.28 : 0.14;
       pad.current.opacity =
-        base + Math.sin(clock.getElapsedTime() * 2 + station.x) * 0.05;
+        base + (matte ? 0 : Math.sin(clock.getElapsedTime() * 2 + station.x) * 0.05);
     }
     if (body.current) {
       const targetY = lit ? 0.22 : 0.17;
@@ -353,7 +355,7 @@ function Chip({
             roughness={0.55}
             metalness={0.2}
             emissive={color}
-            emissiveIntensity={lit ? 0.12 : 0}
+            emissiveIntensity={lit && !matte ? 0.12 : 0}
           />
         </mesh>
         {/* pin 1 dot */}
@@ -408,7 +410,12 @@ function Chip({
         >
           <div
             className={`whitespace-nowrap text-center font-sans transition-all duration-300 select-none ${lit ? "scale-110" : ""}`}
-            style={{ color: lit ? color : dim ? "rgba(238,242,246,0.35)" : "#f2f6fa" }}
+            style={{
+              color: lit ? color : boardInk,
+              opacity: dim && !lit ? 0.4 : 1,
+              background: `${board}e6`,
+              padding: "2px 8px 3px",
+            }}
           >
             <div className="text-[19px] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
               {station.short}
@@ -543,14 +550,12 @@ export default function BoardScene(props: SceneProps) {
       <ambientLight intensity={1.05} />
       <directionalLight position={[6, 14, 8]} intensity={2.1} />
       <hemisphereLight args={["#cfe0ff", props.palette.ground, 0.55]} />
-      <pointLight position={[-8, 6, -4]} intensity={30} color={props.accent} distance={26} />
-      <pointLight position={[8, 6, 5]} intensity={18} color="#27e0c4" distance={24} />
+      <pointLight position={[-8, 6, -4]} intensity={props.palette.finish === "matte" ? 10 : 30} color={props.palette.finish === "matte" ? "#ffffff" : props.accent} distance={26} />
+      <pointLight position={[8, 6, 5]} intensity={props.palette.finish === "matte" ? 8 : 18} color={props.palette.finish === "matte" ? "#ffffff" : "#27e0c4"} distance={24} />
 
-      {/* portrait screens get the board turned so time runs top to bottom */}
+      <PaletteCtx.Provider value={props.palette}>
       <group>
-        <PaletteCtx.Provider value={props.palette}>
-          <Board />
-        </PaletteCtx.Provider>
+        <Board />
         <Signals reduce={props.reduce} accent={props.accent} />
         {stations.map((s) => (
           <Chip
@@ -573,6 +578,7 @@ export default function BoardScene(props: SceneProps) {
           onArrive={props.onArrive}
         />
       </group>
+      </PaletteCtx.Provider>
 
       <OrbitControls
         enablePan={false}
