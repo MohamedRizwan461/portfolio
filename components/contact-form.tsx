@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 type Errors = Partial<Record<"name" | "message", string>>;
 
 const field =
-  "ease mt-2 block w-full border border-rule-strong bg-ground px-3 py-2.5 text-base text-ink placeholder:text-ink-2 hover:border-accent focus:border-accent focus:outline-none aria-[invalid=true]:border-[#c0362c]";
+  "mt-2 block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-3 text-lg font-light text-ink transition-colors duration-300 placeholder:text-ink-2 hover:border-[color-mix(in_srgb,var(--ink)_45%,transparent)] focus:border-ink focus:outline-none aria-[invalid=true]:border-[#e5484d]";
 
 export function ContactForm({ email }: { email: string }) {
   const [errors, setErrors] = useState<Errors>({});
@@ -31,10 +31,10 @@ export function ContactForm({ email }: { email: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-6 grid gap-5">
-      <div className="grid gap-5 sm:grid-cols-2">
+    <form onSubmit={onSubmit} noValidate className="grid gap-8">
+      <div className="grid gap-8 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="text-sm font-medium">
+          <label htmlFor="name" className="eyebrow">
             Name
           </label>
           <input
@@ -46,32 +46,32 @@ export function ContactForm({ email }: { email: string }) {
             className={field}
           />
           {errors.name && (
-            <p id="name-error" className="mt-1.5 text-sm text-[#c0362c] dark:text-[#ff8a7f]">
+            <p id="name-error" className="mt-1.5 text-sm text-[#ff6b6b]">
               {errors.name}
             </p>
           )}
         </div>
         <div>
-          <label htmlFor="company" className="text-sm font-medium">
-            Company <span className="font-normal text-ink-2">(optional)</span>
+          <label htmlFor="company" className="eyebrow">
+            Company <span className="opacity-60">(optional)</span>
           </label>
           <input id="company" name="company" autoComplete="organization" className={field} />
         </div>
       </div>
       <div>
-        <label htmlFor="message" className="text-sm font-medium">
+        <label htmlFor="message" className="eyebrow">
           Message
         </label>
         <textarea
           id="message"
           name="message"
-          rows={6}
+          rows={4}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={errors.message ? "message-error" : undefined}
           className={`${field} resize-y`}
         />
         {errors.message && (
-          <p id="message-error" className="mt-1.5 text-sm text-[#c0362c] dark:text-[#ff8a7f]">
+          <p id="message-error" className="mt-1.5 text-sm text-[#ff6b6b]">
             {errors.message}
           </p>
         )}
@@ -79,7 +79,7 @@ export function ContactForm({ email }: { email: string }) {
       <div className="flex flex-wrap items-center gap-4">
         <button
           type="submit"
-          className="ease inline-flex h-11 items-center justify-center border border-accent bg-accent px-5 text-sm font-medium whitespace-nowrap text-accent-ink hover:border-ink hover:bg-ink hover:text-ground active:translate-y-px"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-ink px-7 text-[0.9rem] font-medium whitespace-nowrap text-ground transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)] active:scale-[0.98]"
         >
           Open in email app
         </button>

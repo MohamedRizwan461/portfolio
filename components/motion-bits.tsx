@@ -24,10 +24,41 @@ export function Reveal({
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.6, delay, ease: EASE }}
+      transition={{ duration: 0.9, delay, ease: EASE }}
     >
       {children}
     </motion.div>
+  );
+}
+
+/**
+ * A line of type that rises from behind a mask. On mount by default; with
+ * `inView` it waits until it is scrolled to.
+ */
+export function Mask({
+  children,
+  delay = 0,
+  inView = false,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  inView?: boolean;
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
+  const to = { y: "0%" };
+  return (
+    <span className={`block overflow-hidden pb-[0.12em] -mb-[0.12em] ${className}`}>
+      <motion.span
+        className="block"
+        initial={reduce ? false : { y: "108%" }}
+        {...(inView ? { whileInView: to, viewport: { once: true, amount: 0.6 } } : { animate: to })}
+        transition={{ duration: 1.05, delay, ease: EASE }}
+      >
+        {children}
+      </motion.span>
+    </span>
   );
 }
 

@@ -1,18 +1,20 @@
 @import "tailwindcss";
 
-/* One theme, locked: a dark instrument panel lit by two signal fields. */
+/* Dark instrument room: near-black, hairline rules, one accent of light. */
 :root {
-  --ground: #0d0f12;
-  --panel: rgba(255, 255, 255, 0.035);
-  --panel-strong: rgba(255, 255, 255, 0.07);
-  --ink: #eef2f6;
-  --ink-2: #b4c0cc;
-  --rule: rgba(255, 255, 255, 0.12);
-  --rule-strong: rgba(255, 255, 255, 0.28);
+  --ground: #06080b;
+  --surface: #0c0f13;
+  --surface-2: #12161c;
+  --panel: rgba(255, 255, 255, 0.025);
+  --panel-strong: rgba(255, 255, 255, 0.05);
+  --ink: #eef1f5;
+  --ink-2: #9aa3b0;
+  --rule: rgba(255, 255, 255, 0.08);
+  --rule-strong: rgba(255, 255, 255, 0.18);
   --accent: #3fa9ff;
-  --accent-2: #27e0c4;
+  --accent-2: #ff4d4f;
   --accent-ink: #04070c;
-  --accent-soft: rgba(77, 141, 255, 0.14);
+  --accent-soft: rgba(63, 169, 255, 0.12);
   color-scheme: dark;
 }
 
@@ -44,8 +46,8 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--ink);
+  color: var(--ground);
 }
 
 :focus-visible {
@@ -74,12 +76,14 @@ p {
 
 /* Section heading: a small caps label on a bright rule. */
 .ds-head {
-  border-top: 1px solid var(--rule-strong);
-  padding-top: 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.9rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
+  color: var(--ink-2);
 }
 
 /* Panels read as glass over the field, never as flat cards. */
@@ -100,30 +104,28 @@ p {
 
 /* ---- backdrop ---- */
 
+/* a soft key light from above, in the operator's colour */
+.bd-light {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(70% 50% at 50% -12%, var(--field-a, rgba(63, 169, 255, 0.3)), transparent 70%);
+  opacity: 0.55;
+  transition: background 800ms ease;
+}
+
 .bd-field {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.75;
-}
-
-.bd-field-a {
-  top: -25vh;
-  left: -10vw;
-  width: 75vw;
-  height: 75vw;
-  background: radial-gradient(circle at 50% 50%, var(--field-a, rgba(77, 141, 255, 0.5)), transparent 62%);
-  transition: background 800ms ease;
-  animation: bd-drift-a 34s ease-in-out infinite alternate;
+  filter: blur(120px);
+  opacity: 0.22;
 }
 
 .bd-field-b {
-  right: -20vw;
-  bottom: -30vh;
+  right: -25vw;
+  bottom: -40vh;
   width: 70vw;
   height: 70vw;
-  background: radial-gradient(circle at 50% 50%, var(--field-b, rgba(39, 224, 196, 0.32)), transparent 60%);
-  transition: background 800ms ease;
+  background: radial-gradient(circle at 50% 50%, var(--field-b, rgba(63, 169, 255, 0.1)), transparent 60%);
   animation: bd-drift-b 44s ease-in-out infinite alternate;
 }
 
@@ -131,41 +133,109 @@ p {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, var(--grid-line, rgba(255, 255, 255, 0.05)) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line, rgba(255, 255, 255, 0.05)) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 78%);
+    linear-gradient(to right, var(--grid-line, rgba(255, 255, 255, 0.028)) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line, rgba(255, 255, 255, 0.028)) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(ellipse 70% 45% at 50% 0%, #000 10%, transparent 75%);
+}
+
+/* film grain: the thing that stops flat black looking like a default */
+.bd-grain {
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
 }
 
 .bd-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 100% 80% at 50% 45%, transparent 50%, var(--vignette, rgba(4, 8, 16, 0.55)) 100%);
+  background: radial-gradient(ellipse 110% 85% at 50% 40%, transparent 55%, var(--vignette, rgba(0, 0, 0, 0.62)) 100%);
 }
 
-@keyframes bd-drift-a {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
+@media (prefers-reduced-motion: no-preference) {
+  .bd-grain {
+    animation: bd-grain 0.9s steps(6) infinite;
   }
-  to {
-    transform: translate3d(8vw, 10vh, 0) scale(1.15);
-  }
+}
+
+@keyframes bd-grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); }
+  80% { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
 }
 
 @keyframes bd-drift-b {
-  from {
-    transform: translate3d(0, 0, 0) scale(1.1);
-  }
-  to {
-    transform: translate3d(-10vw, -8vh, 0) scale(1);
-  }
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to { transform: translate3d(-10vw, -8vh, 0) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-field-a,
-  .bd-field-b {
-    animation: none;
-  }
+  .bd-field-b { animation: none; }
+}
+
+html[data-finish="matte"] .bd-field,
+html[data-finish="matte"] .bd-light {
+  display: none;
+}
+
+html[data-scheme="light"] .bd-grain {
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+}
+
+/* ---- type and surfaces ---- */
+
+.eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.display {
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--ground) 62%, transparent);
+  border: 1px solid var(--rule);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* underline that draws in from the left */
+.link-u {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0% 1px no-repeat;
+  transition: background-size 600ms cubic-bezier(0.16, 1, 0.3, 1), color 300ms ease;
+}
+.link-u:hover,
+.link-u:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -175,28 +245,6 @@ p {
       background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
       border-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-}
-
-/* recruiter mode: the resume button breathes */
-@keyframes resume-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(77, 141, 255, 0.65);
-  }
-  70% {
-    box-shadow: 0 0 0 12px rgba(77, 141, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(77, 141, 255, 0);
-  }
-}
-
-/* matte themes: flat solid colour, no drifting light */
-html[data-finish="matte"] .bd-field {
-  display: none;
-}
-
-html[data-scheme="light"] .bd-field {
-  opacity: 0.55;
 }
 
 body,
@@ -240,12 +288,3 @@ html {
   transform-box: fill-box;
   transform-origin: center;
 }
-
-/* power-on circuit */
-@media (prefers-reduced-motion: no-preference) {
-  .pc-current { stroke-dasharray: 14 22; animation: pc-flow 0.6s linear infinite; }
-  .pc-glow { animation: il-blink 1.4s ease-in-out infinite; }
-  .pc-ping { transform-box: fill-box; transform-origin: center; animation: pc-ping 1.4s ease-out infinite; }
-}
-@keyframes pc-flow { to { stroke-dashoffset: -36; } }
-@keyframes pc-ping { 0% { opacity: 0.9; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.5); } }

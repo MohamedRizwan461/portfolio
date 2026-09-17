@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Reveal } from "@/components/motion-bits";
-import { ProjectsWire } from "@/components/projects-wire";
+import { Mask, Reveal } from "@/components/motion-bits";
+import { ProjectsIndex } from "@/components/projects-index";
 import { Container } from "@/components/ui";
 import { projects } from "@/lib/content";
 
@@ -15,18 +15,26 @@ export const metadata: Metadata = {
 export default function ProjectsPage() {
   return (
     <>
-      <Container className="pt-10 sm:pt-16">
-        <Reveal>
-          <h1 className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] sm:text-6xl">Projects</h1>
-          <p className="mt-6 max-w-[58ch] text-xl leading-snug text-ink-2 sm:text-2xl">
+      <Container className="pt-36 sm:pt-44">
+        <Mask>
+          <p className="eyebrow">
+            Selected work <span className="mx-2 opacity-40">/</span> {String(projects.length).padStart(2, "0")}
+          </p>
+        </Mask>
+        <h1 className="display mt-6 text-[clamp(3.75rem,12vw,10rem)] leading-[0.92]">
+          <Mask delay={0.08}>Projects</Mask>
+        </h1>
+        <Reveal delay={0.3} className="mt-12 grid gap-6 border-t border-rule pt-6 sm:grid-cols-12">
+          <p className="eyebrow sm:col-span-4">Firmware · Robotics · Autonomy</p>
+          <p className="text-lg leading-relaxed font-light text-ink-2 sm:col-span-7 sm:col-start-6 sm:text-xl">
             Eight systems, from bare-metal firmware to FEA-validated mechanisms. Each one covers the problem, what I
             built, the stack, how it was validated and the results.
           </p>
         </Reveal>
       </Container>
 
-      <Container className="pt-14 pb-8 sm:pt-20">
-        <ProjectsWire projects={projects} />
+      <Container className="pt-20 sm:pt-28">
+        <ProjectsIndex projects={projects} />
       </Container>
     </>
   );

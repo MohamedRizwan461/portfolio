@@ -413,14 +413,16 @@ function Chip({
             style={{
               color: lit ? color : boardInk,
               opacity: dim && !lit ? 0.4 : 1,
-              background: `${board}e6`,
-              padding: "2px 8px 3px",
+              background: `${board}d9`,
+              border: "1px solid rgba(255,255,255,0.07)",
+              backdropFilter: "blur(4px)",
+              padding: "3px 10px 4px",
             }}
           >
-            <div className="text-[14px] font-semibold tracking-tight">
+            <div className="text-[13.5px] font-medium tracking-tight">
               {station.short}
             </div>
-            <div className="font-mono text-[10px] opacity-75">
+            <div className="font-mono text-[9px] tracking-[0.18em] uppercase opacity-70">
               {station.year}
             </div>
           </div>

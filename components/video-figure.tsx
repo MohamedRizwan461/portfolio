@@ -41,8 +41,8 @@ export function VideoFigure({
           className={`block w-full ${video.portrait ? "h-full scale-[1.32] object-cover" : ""}`}
         />
       </div>
-      <figcaption className="mt-2 text-xs text-ink-2">
-        {number !== undefined && <span className="num mr-2 font-mono text-ink">Fig. {number}</span>}
+      <figcaption className="mt-3 flex gap-3 text-xs leading-relaxed text-ink-2">
+        {number !== undefined && <span className="eyebrow shrink-0 !text-[0.62rem] text-ink">Fig. {String(number).padStart(2, "0")}</span>}
         {video.caption}
       </figcaption>
     </figure>

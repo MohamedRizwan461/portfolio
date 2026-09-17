@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
 import * as THREE from "three";
 import { modes, type Mode, type ModeId } from "@/lib/modes";
-import { playImpact, playRiser, playTick, playWhoosh, setSoundEnabled, soundEnabled, unlockAudio } from "@/lib/sound";
+import { playImpact, playRiser, playSelect, playTick, playWhoosh, setSoundEnabled, soundEnabled, unlockAudio } from "@/lib/sound";
 import { ParticleCinema, type Cue } from "./particle-cinema";
 import { RobotModel } from "./robot-model";
 
@@ -181,6 +181,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
     (id: ModeId) => {
       if (leaving) return;
       setLeaving(true);
+      playSelect();
       setTimeout(() => onSelect(id), reduce ? 0 : 550);
     },
     [leaving, onSelect, reduce],

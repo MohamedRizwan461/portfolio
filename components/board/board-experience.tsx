@@ -11,7 +11,6 @@ import {
   CaretDown,
   CursorClick,
   DownloadSimple,
-  ListBullets,
   Moon,
   PlayCircle,
   SpeakerHigh,
@@ -26,6 +25,7 @@ import { applyTheme, DEFAULT_THEME, readThemeChoice, SCHEME_STORAGE_KEY, THEME_S
 import { markStationSeen } from "@/lib/progress";
 import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { stations } from "@/lib/stations";
+import { Mask } from "@/components/motion-bits";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BootIntro } from "./boot-intro";
 import { RowDock } from "./row-dock";
@@ -76,12 +76,12 @@ function BusStatus() {
     return () => clearInterval(id);
   }, [reduce]);
   return (
-    <span className="num hidden items-center gap-2 border border-rule bg-ground/60 px-2.5 py-1 font-mono text-[0.7rem] tracking-wide text-ink-2 backdrop-blur md:flex">
-      <span className="relative flex h-2 w-2">
+    <span className="num eyebrow hidden items-center gap-2.5 !text-[0.6rem] xl:flex">
+      <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-60 motion-reduce:hidden" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
       </span>
-      BUS OK · CNT {n.toString(16).toUpperCase()} · CRC OK
+      Bus ok <span className="opacity-40">/</span> cnt {n.toString(16).toUpperCase()} <span className="opacity-40">/</span> crc ok
     </span>
   );
 }
@@ -272,7 +272,13 @@ export function BoardExperience() {
     [modeConfig],
   );
 
-  const btn = "ease flex items-center gap-1.5 border border-rule bg-ground/70 px-2.5 py-1.5 text-[0.8rem] text-ink no-underline backdrop-blur hover:border-accent hover:text-accent";
+  const link = "rounded-full px-4 py-2 text-[0.85rem] text-ink-2 no-underline transition-colors duration-300 hover:text-ink";
+  const iconBtn =
+    "flex h-10 w-10 items-center justify-center rounded-full text-ink-2 transition-colors duration-300 hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink";
+  const pillPrimary =
+    "flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[0.88rem] font-medium text-ground no-underline transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)] sm:h-12 sm:px-6";
+  const pillSecondary =
+    "flex h-11 items-center gap-2 rounded-full border border-rule-strong bg-[color-mix(in_srgb,var(--ground)_40%,transparent)] px-5 text-[0.88rem] font-medium text-ink no-underline backdrop-blur transition-colors duration-300 hover:border-[color-mix(in_srgb,var(--ink)_50%,transparent)] sm:h-12 sm:px-6";
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
@@ -320,37 +326,36 @@ export function BoardExperience() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--ground)_90%,transparent),transparent)]" />
 
       {/* top bar */}
-      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-baseline gap-2 no-underline">
-            <span className="font-mono text-sm font-bold tracking-tight" style={{ color: accent }}>
-              RIZ
-            </span>
-            <span className="hidden text-sm text-ink sm:inline">Mohamed Rizwan</span>
+      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 px-4 pt-4 sm:px-8 sm:pt-6">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-5">
+          <Link href="/" className="flex items-center gap-3 no-underline">
+            <span className="h-2 w-2 rounded-full" style={{ background: accent, boxShadow: `0 0 14px ${accent}` }} />
+            <span className="hidden text-[0.95rem] font-medium tracking-tight text-ink sm:inline">Mohamed Rizwan</span>
+            <span className="text-[0.95rem] font-medium tracking-tight text-ink sm:hidden">Riz</span>
           </Link>
-          <BusStatus />
           {mode && (
             <button
               type="button"
               onClick={() => setIntro("select")}
-              className="ease flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[0.7rem] tracking-wide text-ink backdrop-blur hover:bg-white/5"
-              style={{ borderColor: accent }}
+              className="flex items-center gap-2 rounded-full border border-rule-strong bg-[color-mix(in_srgb,var(--ground)_50%,transparent)] px-3.5 py-1.5 font-mono text-[0.6rem] tracking-[0.22em] text-ink-2 uppercase backdrop-blur transition-colors duration-300 hover:border-ink hover:text-ink"
             >
-              <span className="hidden sm:inline text-ink-2">MODE</span>
-              <span style={{ color: accent }}>{modeConfig.label.toUpperCase()}</span>
-              <CaretDown size={12} aria-hidden />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+              <span className="hidden md:inline">View</span>
+              <span className="text-ink">{modeConfig.label}</span>
+              <CaretDown size={10} weight="bold" aria-hidden />
             </button>
           )}
+          <BusStatus />
         </div>
-        <nav aria-label="Primary" className="flex items-center gap-2">
-          <Link href="/tour" className={`${btn} hidden lg:flex`}>
-            <PlayCircle size={16} aria-hidden /> Guided tour
+        <nav aria-label="Primary" className="flex items-center gap-0.5">
+          <Link href="/tour" className={`${link} hidden lg:block`}>
+            Guided tour
           </Link>
-          <Link href="/about" className={`${btn} hidden lg:flex`}>
+          <Link href="/about" className={`${link} hidden lg:block`}>
             About
           </Link>
-          <Link href="/projects" className={`${btn} hidden sm:flex`}>
-            <ListBullets size={16} aria-hidden /> All projects
+          <Link href="/projects" className={`${link} mr-1 hidden sm:block`}>
+            Projects
           </Link>
           <button
             type="button"
@@ -360,20 +365,19 @@ export function BoardExperience() {
               setSoundEnabled(next);
             }}
             aria-label={sound ? "Mute sound" : "Turn sound on"}
-            className={`${btn} px-2.5`}
+            className={`${iconBtn} hidden sm:flex`}
           >
             {sound ? <SpeakerHigh size={16} aria-hidden /> : <SpeakerSlash size={16} aria-hidden />}
           </button>
-          <ThemeToggle scheme={scheme} onChange={chooseScheme} className={`${btn} px-2.5`} />
+          <ThemeToggle scheme={scheme} onChange={chooseScheme} className={iconBtn} />
           <a
             href={site.resumePdf}
             download
-            className={`ease flex items-center gap-1.5 border px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--accent-ink)] no-underline hover:brightness-110 ${
-              mode === "recruiter" ? "motion-safe:animate-[resume-glow_2.2s_ease-out_infinite]" : ""
-            }`}
-            style={{ background: accent, borderColor: accent }}
+            aria-label="Download resume"
+            className="ml-1 flex h-10 w-10 items-center justify-center gap-2 rounded-full bg-ink text-[0.85rem] font-medium text-ground no-underline transition-shadow duration-500 sm:ml-1.5 sm:w-auto sm:px-5"
+            style={mode === "recruiter" ? { boxShadow: `0 0 0 1px ${accent}, 0 0 32px -6px ${accent}` } : undefined}
           >
-            <DownloadSimple size={16} weight="bold" aria-hidden /> Resume
+            <DownloadSimple size={15} weight="bold" aria-hidden /> <span className="hidden sm:inline">Resume</span>
           </a>
         </nav>
       </header>
@@ -382,56 +386,59 @@ export function BoardExperience() {
       <AnimatePresence mode="wait">
         <motion.section
           key={modeConfig.id}
-          initial={reduce ? false : { opacity: 0, x: -24 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="pointer-events-none absolute top-[4.5rem] left-4 z-20 max-w-[22rem] sm:top-24 sm:left-6 sm:max-w-md lg:top-[20%] lg:left-10 lg:max-w-[25rem] [@media(max-height:860px)]:lg:top-[17%]"
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          transition={{ duration: 0.4 }}
+          className="pointer-events-none absolute top-[4.75rem] left-4 z-20 max-w-[22rem] sm:top-28 sm:left-8 sm:max-w-md lg:top-[19%] lg:left-12 lg:max-w-[26rem] [@media(max-height:860px)]:lg:top-[15%]"
         >
-          <p className="text-[0.7rem] font-semibold tracking-[0.18em] uppercase" style={{ color: accent }}>
-            {modeConfig.kicker}
-          </p>
-          <h1 className="mt-2 text-[1.45rem] leading-[1.1] font-semibold tracking-[-0.02em] sm:text-3xl lg:text-[2.35rem]">
-            {modeConfig.headline}
+          <Mask>
+            <p className="eyebrow flex items-center gap-3" style={{ color: accent }}>
+              <span className="h-px w-8" style={{ background: accent }} />
+              {modeConfig.kicker}
+            </p>
+          </Mask>
+          <h1 className="display mt-4 text-[1.85rem] sm:text-[2.6rem] lg:text-[2.9rem] [@media(max-height:860px)]:lg:text-[2.6rem]">
+            <Mask delay={0.08}>{modeConfig.headline}</Mask>
           </h1>
-          <p className="mt-3 hidden max-w-[40ch] text-sm leading-relaxed text-ink-2 2xl:block">{modeConfig.sub}</p>
-          <div className="pointer-events-auto mt-4 flex flex-wrap gap-2 sm:mt-5">
+          <motion.p
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.35 }}
+            className="mt-4 hidden max-w-[40ch] text-[0.95rem] leading-relaxed font-light text-ink-2 2xl:block"
+          >
+            {modeConfig.sub}
+          </motion.p>
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
+            className="pointer-events-auto mt-6 flex flex-wrap gap-2.5 sm:mt-8"
+          >
             {modeConfig.primary.download || modeConfig.primary.external ? (
               <a
                 href={modeConfig.primary.href}
                 {...(modeConfig.primary.download ? { download: true } : { target: "_blank", rel: "noopener" })}
-                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[var(--ground)] no-underline hover:opacity-90 sm:px-4 sm:text-sm"
+                className={pillPrimary}
               >
-                {modeConfig.primary.download ? <DownloadSimple size={18} weight="bold" /> : <ArrowUpRight size={18} weight="bold" />}
+                {modeConfig.primary.download ? <DownloadSimple size={16} weight="bold" /> : <ArrowUpRight size={16} weight="bold" />}
                 {modeConfig.primary.label}
               </a>
             ) : (
-              <Link
-                href={modeConfig.primary.href}
-                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[var(--ground)] no-underline hover:opacity-90 sm:px-4 sm:text-sm"
-              >
-                <PlayCircle size={18} weight="fill" /> {modeConfig.primary.label}
+              <Link href={modeConfig.primary.href} className={pillPrimary}>
+                <PlayCircle size={17} weight="fill" /> {modeConfig.primary.label}
               </Link>
             )}
             {modeConfig.secondary.external ? (
-              <a
-                href={modeConfig.secondary.href}
-                target="_blank"
-                rel="noopener"
-                className="ease flex items-center gap-2 bg-[color-mix(in_srgb,var(--ink)_13%,transparent)] px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-[color-mix(in_srgb,var(--ink)_22%,transparent)] sm:px-4 sm:text-sm"
-              >
-                {modeConfig.secondary.label} <ArrowUpRight size={16} weight="bold" />
+              <a href={modeConfig.secondary.href} target="_blank" rel="noopener" className={pillSecondary}>
+                {modeConfig.secondary.label} <ArrowUpRight size={15} weight="bold" />
               </a>
             ) : (
-              <Link
-                href={modeConfig.secondary.href}
-                className="ease flex items-center gap-2 bg-[color-mix(in_srgb,var(--ink)_13%,transparent)] px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-[color-mix(in_srgb,var(--ink)_22%,transparent)] sm:px-4 sm:text-sm"
-              >
-                {modeConfig.secondary.label} <ArrowRight size={16} weight="bold" />
+              <Link href={modeConfig.secondary.href} className={pillSecondary}>
+                {modeConfig.secondary.label} <ArrowRight size={15} weight="bold" />
               </Link>
             )}
-          </div>
-
+          </motion.div>
         </motion.section>
       </AnimatePresence>
 
@@ -443,20 +450,19 @@ export function BoardExperience() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, delay: reduce ? 0 : 1 }}
-            className="absolute top-[3.6rem] left-10 z-20 hidden items-center gap-2 border bg-[color-mix(in_srgb,var(--ground)_90%,transparent)] px-2.5 py-1 text-[0.75rem] text-ink-2 backdrop-blur lg:flex"
-            style={{ borderColor: accent }}
+            className="eyebrow absolute top-[4.9rem] left-12 z-20 hidden items-center gap-3 !text-[0.6rem] lg:flex"
           >
-            <CursorClick size={14} weight="duotone" style={{ color: accent }} aria-hidden />
-            Click any chip and the robot drives there. Drag to look around.
+            <CursorClick size={13} style={{ color: accent }} aria-hidden />
+            Click a chip and the robot drives there. Drag to look around.
             <button type="button" onClick={() => setHint(false)} aria-label="Dismiss hint" className="text-ink-2 hover:text-ink">
-              <X size={14} />
+              <X size={12} />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* the row */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-5">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-8 sm:pb-6">
         <RowDock key={modeConfig.id} title={modeConfig.rowTitle} ids={modeConfig.cards} accent={accent} seenTick={seenTick} onOpen={openFromRow} />
       </div>
 

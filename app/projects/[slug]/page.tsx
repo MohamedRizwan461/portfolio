@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
-import { Reveal } from "@/components/motion-bits";
-import { Branch, Wire, WireSection } from "@/components/wire";
+import { Mask, Reveal } from "@/components/motion-bits";
 import { VideoFigure } from "@/components/video-figure";
 import { GearSim } from "@/components/gear-sim";
-import { CarScene, CircuitScene, ProtoScene, VisionScene } from "@/components/illustrations";
-import { Container, Figure, SectionHead, SpecTable } from "@/components/ui";
+import { ProjectVisual } from "@/components/project-visual";
+import { SectionIndex } from "@/components/section-index";
+import { Container, Figure, SpecTable } from "@/components/ui";
 import { projects } from "@/lib/content";
 
 export const dynamicParams = false;
@@ -30,14 +31,30 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
 
 function List({ items }: { items: string[] }) {
   return (
-    <ul className="mt-4 space-y-3">
-      {items.map((item) => (
-        <li key={item} className="grid grid-cols-[0.75rem_1fr] gap-2 text-ink">
-          <span aria-hidden className="mt-[0.6rem] h-px w-2 bg-accent" />
-          <span className="max-w-[68ch] text-ink-2">{item}</span>
+    <ul className="divide-y divide-rule border-y border-rule">
+      {items.map((item, i) => (
+        <li key={item} className="grid grid-cols-[2.25rem_1fr] gap-3 py-4">
+          <span className="pt-1 font-mono text-[0.68rem] text-ink-2">{String(i + 1).padStart(2, "0")}</span>
+          <span className="max-w-[66ch] text-[1.02rem] leading-relaxed text-ink">{item}</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+function Section({ id, n, title, children }: { id: string; n: number; title: string; children: ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-h`} className="scroll-mt-32">
+      <Reveal>
+        <div className="flex items-baseline gap-4">
+          <span className="eyebrow">{String(n).padStart(2, "0")}</span>
+          <h2 id={`${id}-h`} className="display text-[clamp(1.75rem,3vw,2.5rem)]">
+            {title}
+          </h2>
+        </div>
+        <div className="mt-6">{children}</div>
+      </Reveal>
+    </section>
   );
 }
 
@@ -52,193 +69,196 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
     project.cover.src || project.cover.kind
       ? [project.cover, ...project.figures.filter((f) => f !== project.cover)]
       : project.figures;
+  const hasVideo = Boolean(project.videos?.length);
+  const portrait = hasVideo && Boolean(project.videos![0].portrait);
+  const heroFigure = !hasVideo ? figures[0] : undefined;
+  // portrait footage sits beside a figure so the frame is never half empty
+  const sideFigure = portrait ? figures.find((f) => f.src) : undefined;
+  const galleryFigures = (hasVideo ? figures : figures.slice(1)).filter((f) => f !== sideFigure);
+  const extraVideos = project.videos?.slice(1) ?? [];
+
+  const sections = [
+    { id: "built", label: "What I built", items: project.built },
+    { id: "hardware", label: "Hardware", items: project.hardware },
+    { id: "software", label: "Software", items: project.software },
+    { id: "validation", label: "Validation", items: project.validation },
+    { id: "results", label: "Results", items: project.results },
+  ].filter((s) => s.items.length > 0);
+  const toc = [
+    ...sections.map(({ id, label }) => ({ id, label })),
+    { id: "characteristics", label: "Characteristics" },
+    ...(galleryFigures.length || extraVideos.length ? [{ id: "gallery", label: "Gallery" }] : []),
+  ];
+
+  const meta = [
+    { k: "Role", v: project.role },
+    { k: "Stack", v: project.stack.join(", "), mono: true },
+    project.patent ? { k: "Patent", v: project.patent, mono: true } : { k: "Context", v: project.context },
+  ];
 
   return (
     <article>
-      <Container className="pt-8 sm:pt-12">
-        <Link href="/projects" className="ease inline-flex items-center gap-2 text-sm text-ink-2 hover:text-accent">
-          <ArrowLeft size={14} weight="bold" aria-hidden /> Projects
+      {/* hero */}
+      <Container className="pt-32 sm:pt-40">
+        <Link href="/projects" className="eyebrow group inline-flex items-center gap-2 no-underline hover:text-ink">
+          <ArrowLeft size={12} weight="bold" aria-hidden className="transition-transform duration-500 group-hover:-translate-x-1" />
+          <span className="link-u">All projects</span>
         </Link>
 
-        <Reveal className="mt-6">
-          <div className="grid gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-8">
-              <p className="num font-mono text-xs text-ink-2">
-                {project.date}
-                <span className="mx-2">/</span>
-                {project.context}
-                {project.status && <span className="ml-3 text-accent">{project.status}</span>}
-              </p>
-              <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-[-0.03em] sm:text-5xl">
-                {project.title}
-              </h1>
-            </div>
-            <dl className="grid content-start gap-4 text-sm lg:col-span-4 lg:border-l lg:border-rule lg:pl-8">
-              <div>
-                <dt className="text-ink-2">Role</dt>
-                <dd className="mt-1">{project.role}</dd>
+        <div className="mt-12 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Mask>
+            <p className="eyebrow">
+              {String(index + 1).padStart(2, "0")} <span className="mx-2 opacity-40">/</span> {project.date}
+              <span className="mx-2 opacity-40">/</span> {project.context}
+            </p>
+          </Mask>
+          {project.status && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--accent)_45%,transparent)] px-3 py-1 font-mono text-[0.62rem] tracking-[0.2em] text-accent uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent motion-safe:animate-pulse" />
+              {project.status}
+            </span>
+          )}
+        </div>
+
+        <h1 className="display mt-6 max-w-[16ch] text-[clamp(2.75rem,7.5vw,6.75rem)] leading-[0.98]">
+          <Mask delay={0.06}>{project.title}</Mask>
+        </h1>
+
+        <Reveal delay={0.25}>
+          <p className="mt-10 max-w-[52ch] text-xl leading-relaxed font-light text-ink-2 sm:text-2xl">{project.problem}</p>
+        </Reveal>
+
+        <Reveal delay={0.35}>
+          <dl className="mt-14 grid gap-px overflow-hidden border border-rule bg-[var(--rule)] sm:grid-cols-3">
+            {meta.map((m) => (
+              <div key={m.k} className="bg-ground p-5 sm:p-6">
+                <dt className="eyebrow">{m.k}</dt>
+                <dd className={`mt-3 leading-relaxed text-ink ${m.mono ? "font-mono text-[0.78rem]" : "text-[0.95rem]"}`}>{m.v}</dd>
               </div>
-              <div>
-                <dt className="text-ink-2">Stack</dt>
-                <dd className="mt-1 font-mono text-xs leading-5">{project.stack.join(", ")}</dd>
+            ))}
+          </dl>
+        </Reveal>
+      </Container>
+
+      {/* the evidence, big */}
+      <Container className="pt-16 sm:pt-20">
+        <Reveal>
+          {portrait ? (
+            <div className="grid items-end gap-8 lg:grid-cols-12">
+              <div className="lg:col-span-5">
+                <VideoFigure video={project.videos![0]} />
               </div>
-              {project.patent && (
-                <div>
-                  <dt className="text-ink-2">Patent</dt>
-                  <dd className="mt-1 font-mono text-xs leading-5">{project.patent}</dd>
+              {sideFigure && (
+                <div className="lg:col-span-7">
+                  <Figure figure={sideFigure} number={2} sizes="(min-width: 1024px) 640px, 100vw" />
                 </div>
               )}
-            </dl>
-          </div>
+            </div>
+          ) : hasVideo ? (
+            <VideoFigure video={project.videos![0]} />
+          ) : heroFigure?.src ? (
+            <div className="mx-auto max-w-4xl">
+              <Figure figure={heroFigure} number={1} preload sizes="(min-width: 1024px) 896px, 100vw" />
+            </div>
+          ) : heroFigure?.kind === "canFrame" ? (
+            <div className="grid gap-px overflow-hidden border border-rule bg-[var(--rule)] lg:grid-cols-2">
+              <div className="aspect-[16/10] bg-ground">
+                <ProjectVisual project={project} sizes="560px" />
+              </div>
+              <div className="bg-ground">
+                <Figure figure={heroFigure} number={1} />
+              </div>
+            </div>
+          ) : (
+            <div className="aspect-[21/9] overflow-hidden border border-rule">
+              <ProjectVisual project={project} sizes="100vw" />
+            </div>
+          )}
         </Reveal>
       </Container>
 
       {project.slug === "can-gear-controller" && (
-        <Container className="pt-10">
-          <section aria-labelledby="try-it" className="border border-rule bg-[var(--surface)] p-5 sm:p-7">
-            <h2 id="try-it" className="text-2xl font-semibold tracking-tight">Drive it yourself</h2>
-            <p className="mt-1 text-ink-2">No engineering background needed. Try to shift into reverse at speed.</p>
-            <div className="mt-5">
+        <Container className="pt-20">
+          <section aria-labelledby="try-it" className="border border-rule bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] p-5 sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow text-accent">Interactive</p>
+                <h2 id="try-it" className="display mt-3 text-[clamp(2rem,4vw,3rem)]">
+                  Drive it yourself
+                </h2>
+              </div>
+              <p className="max-w-[40ch] text-ink-2">No engineering background needed. Try to shift into reverse at speed.</p>
+            </div>
+            <div className="mt-8" data-lenis-prevent>
               <GearSim />
             </div>
           </section>
         </Container>
       )}
 
-      <Container className="grid gap-12 pt-12 pb-12 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-7">
-          <Wire className="space-y-16">
-            <WireSection title="Problem" id="problem">
-              <p className="mt-4 max-w-[62ch] text-lg sm:text-xl">{project.problem}</p>
-            </WireSection>
-
-            <WireSection title="What I built" id="built">
-              <List items={project.built} />
-            </WireSection>
-
-            {project.hardware.length > 0 && (
-              <WireSection title="Hardware" id="hardware">
-                <List items={project.hardware} />
-              </WireSection>
-            )}
-
-            <WireSection title="Software" id="software">
-              <List items={project.software} />
-            </WireSection>
-
-            <WireSection title="Validation" id="validation">
-              <List items={project.validation} />
-            </WireSection>
-
-            <WireSection title="Results" id="results">
-              <List items={project.results} />
-            </WireSection>
-          </Wire>
-        </div>
-
-        {/* follows you down the page so the right side is never empty */}
-        <aside className="space-y-10 self-start lg:sticky lg:top-20 lg:col-span-5">
-          <Branch>
-            <section aria-labelledby="characteristics">
-              <SectionHead id="characteristics">Characteristics</SectionHead>
-              <div className="mt-2">
-                <SpecTable rows={project.characteristics} caption={`${project.title} characteristics`} />
-              </div>
-            </section>
-          </Branch>
-
-          {project.videos && project.videos.length > 0 ? (
-            <Branch>
-              <VideoFigure video={project.videos[0]} />
-            </Branch>
-          ) : figures[0] ? (
-            <Branch>
-              <Figure figure={figures[0]} number={1} preload sizes="(min-width: 1024px) 440px, 100vw" />
-            </Branch>
-          ) : (
-            <Branch>
-              {/* no photos for this one yet: a scene of what it does */}
-              <div className="aspect-[2/1] overflow-hidden border border-rule">
-                {project.slug === "ev-boost-converter" ? (
-                  <CircuitScene className="h-full w-full" />
-                ) : project.slug === "supply-chain-risk" ? (
-                  <VisionScene className="h-full w-full" />
-                ) : project.slug === "can-gear-controller" ? (
-                  <CarScene className="h-full w-full" />
-                ) : (
-                  <ProtoScene className="h-full w-full" />
-                )}
-              </div>
-            </Branch>
-          )}
-
-          {project.links.length > 0 && (
-            <Branch>
-              <section aria-labelledby="links">
-                <SectionHead id="links">Links</SectionHead>
-                <ul className="mt-4 space-y-2">
-                  {project.links.map((l) => (
-                    <li key={l.href}>
-                      <a
-                        href={l.href}
-                        target="_blank"
-                        rel="noopener"
-                        className="ease inline-flex items-center gap-1.5 text-accent hover:text-ink"
-                      >
-                        {l.label} <ArrowUpRight size={14} weight="bold" aria-hidden />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </Branch>
-          )}
+      {/* the case study */}
+      <Container className="grid gap-16 pt-24 sm:pt-32 lg:grid-cols-12 lg:gap-10">
+        <aside className="hidden lg:col-span-3 lg:block">
+          <div className="sticky top-32">
+            <SectionIndex sections={toc} />
+          </div>
         </aside>
-      </Container>
 
-      {(() => {
-        const extraVideos = project.videos?.slice(1) ?? [];
-        const galleryFigures = project.videos && project.videos.length > 0 ? figures : figures.slice(1);
-        const offset = project.videos && project.videos.length > 0 ? 0 : 1;
-        if (!extraVideos.length && !galleryFigures.length) return null;
-        return (
-          <Container className="pb-12">
-            <section aria-labelledby="gallery">
-              <SectionHead id="gallery">Gallery</SectionHead>
-              <div className="mt-6 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6 [&>*]:break-inside-avoid">
-                {extraVideos.map((v, i) => (
-                  <Branch key={v.src} index={i}>
-                    <VideoFigure video={v} />
-                  </Branch>
+        <div className="space-y-24 lg:col-span-9">
+          {sections.map((s, i) => (
+            <Section key={s.id} id={s.id} n={i + 1} title={s.label}>
+              <List items={s.items} />
+            </Section>
+          ))}
+
+          <Section id="characteristics" n={sections.length + 1} title="Characteristics">
+            <div className="grid gap-10 lg:grid-cols-[1fr_16rem]">
+              <SpecTable rows={project.characteristics} caption={`${project.title} characteristics`} />
+              {project.links.length > 0 && (
+                <div>
+                  <p className="eyebrow">Links</p>
+                  <ul className="mt-4 space-y-3">
+                    {project.links.map((l) => (
+                      <li key={l.href}>
+                        <a href={l.href} target="_blank" rel="noopener" className="group inline-flex items-center gap-2 text-ink no-underline">
+                          <span className="link-u">{l.label}</span>
+                          <ArrowUpRight size={14} weight="bold" aria-hidden className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Section>
+
+          {(galleryFigures.length > 0 || extraVideos.length > 0) && (
+            <Section id="gallery" n={sections.length + 2} title="Gallery">
+              <div className="columns-1 gap-6 sm:columns-2 [&>*]:mb-8 [&>*]:break-inside-avoid">
+                {extraVideos.map((v) => (
+                  <VideoFigure key={v.src} video={v} />
                 ))}
                 {galleryFigures.map((f, i) => (
-                  <Branch key={f.caption} index={i + extraVideos.length}>
-                    <Figure figure={f} number={i + 1 + offset} sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw" />
-                  </Branch>
+                  <Figure key={f.caption} figure={f} number={i + (sideFigure ? 3 : hasVideo ? 1 : 2)} sizes="(min-width: 640px) 420px, 100vw" />
                 ))}
               </div>
-            </section>
-          </Container>
-        );
-      })()}
+            </Section>
+          )}
+        </div>
+      </Container>
 
-      <Container>
-        <Link
-          href={`/projects/${next.slug}`}
-          className="ease group flex items-center justify-between gap-6 border-t border-b border-rule py-6 no-underline hover:border-accent"
-        >
-          <span>
-            <span className="block text-xs text-ink-2">Next project</span>
-            <span className="mt-1 block text-xl font-semibold tracking-tight group-hover:text-accent">
+      {/* next */}
+      <Container className="pt-32">
+        <Link href={`/projects/${next.slug}`} className="group block border-t border-rule pt-10 no-underline">
+          <p className="eyebrow">Next project</p>
+          <div className="mt-6 flex items-end justify-between gap-6">
+            <span className="display block max-w-[16ch] text-[clamp(2.25rem,6vw,5.5rem)] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
               {next.title}
             </span>
-          </span>
-          <ArrowRight
-            size={20}
-            weight="bold"
-            aria-hidden
-            className="shrink-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-accent"
-          />
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:border-ink group-hover:bg-ink group-hover:text-ground sm:h-24 sm:w-24">
+              <ArrowRight size={26} weight="light" aria-hidden />
+            </span>
+          </div>
         </Link>
       </Container>
     </article>

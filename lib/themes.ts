@@ -39,21 +39,21 @@ export type Theme = {
 };
 
 const DARK = {
-  ink: "#eef2f6",
-  ink2: "#b4c0cc",
-  rule: "rgba(255,255,255,0.12)",
-  ruleStrong: "rgba(255,255,255,0.28)",
-  gridLine: "rgba(255,255,255,0.05)",
-  vignette: "rgba(4,8,16,0.55)",
+  ink: "#eef1f5",
+  ink2: "#9aa3b0",
+  rule: "rgba(255,255,255,0.08)",
+  ruleStrong: "rgba(255,255,255,0.18)",
+  gridLine: "rgba(255,255,255,0.028)",
+  vignette: "rgba(0,0,0,0.62)",
   boardInk: "#f2f6fa",
   onAccent: "#05080d",
 };
 
 const LIGHT = {
   ink: "#111820",
-  ink2: "#4a5663",
-  rule: "rgba(10,20,30,0.13)",
-  ruleStrong: "rgba(10,20,30,0.32)",
+  ink2: "#5b6572",
+  rule: "rgba(10,20,30,0.09)",
+  ruleStrong: "rgba(10,20,30,0.2)",
   gridLine: "rgba(10,20,30,0.06)",
   vignette: "rgba(255,255,255,0)",
   boardInk: "#f2f6fa",
@@ -127,10 +127,10 @@ export const themes: Theme[] = [
     favourite: true,
     dark: {
       ...DARK,
-      ground: "#0d0f12",
-      surface: "#15181d",
-      surface2: "#1d2127",
-      fieldB: "rgba(63,169,255,0.24)",
+      ground: "#06080b",
+      surface: "#0c0f13",
+      surface2: "#12161c",
+      fieldB: "rgba(63,169,255,0.10)",
       board: "#20242b",
       boardEdge: "#2a2f37",
       copper: "#c9a45c",
@@ -138,9 +138,9 @@ export const themes: Theme[] = [
     },
     light: {
       ...LIGHT,
-      ground: "#f2f3f5",
+      ground: "#f3f4f6",
       surface: "#ffffff",
-      surface2: "#e4e6ea",
+      surface2: "#e9ebef",
       fieldB: "rgba(63,169,255,0.14)",
       board: "#20242b",
       boardEdge: "#2a2f37",
@@ -418,7 +418,7 @@ export function applyTheme(theme: Theme, scheme: Scheme, mode: ModeId) {
   set("--accent-2", t.accents.engineer === accent ? t.accents.recruiter : t.accents.engineer);
   set("--accent-ink", t.onAccent);
   set("--accent-soft", hexToRgba(accent, scheme === "light" ? 0.12 : 0.14));
-  set("--field-a", theme.finish === "matte" ? "rgba(0,0,0,0)" : hexToRgba(accent, scheme === "light" ? 0.28 : 0.55));
+  set("--field-a", theme.finish === "matte" ? "rgba(0,0,0,0)" : hexToRgba(accent, scheme === "light" ? 0.18 : 0.3));
   set("--field-b", t.fieldB);
   root.style.colorScheme = scheme;
   root.dataset.finish = theme.finish;

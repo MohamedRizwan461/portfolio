@@ -19,10 +19,10 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="order-2 lg:order-1 lg:col-span-7">
-          <p className="num font-mono text-xs text-accent-2">
+          <p className="eyebrow">
             <Typewriter text="> boot riz ... sensors ok, actuators ok, coffee ok" />
           </p>
-          <h1 className="mt-4 text-[clamp(2.1rem,7vw,4.5rem)] leading-[1.02] font-semibold tracking-[-0.035em]">
+          <h1 className="mt-4 display text-[clamp(2.5rem,5.4vw,4.75rem)]">
             Mohamed Rizwan
             <span className="block text-ink-2">Ameer John</span>
           </h1>
@@ -63,7 +63,7 @@ const slides: Slide[] = [
     label: "The path",
     content: (
       <div className="mx-auto w-full max-w-6xl">
-        <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">
+        <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
           Biology first. Then the machines.
         </h2>
         <p className="mt-4 max-w-[58ch] text-ink-2">
@@ -80,9 +80,9 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
-          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">
+          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
             No renders were harmed.
-            <span className="block text-accent-2">It actually moves.</span>
+            <span className="block text-ink-2">It actually moves.</span>
           </h2>
           <p className="mt-4 max-w-[46ch] text-ink-2">
             A pneumatic knee exoskeleton that reads gait phase on an RP2040 and fires the cylinder when the knee needs
@@ -104,7 +104,7 @@ const slides: Slide[] = [
           <p className="mt-8">
             <Link
               href="/projects/smart-knee-actuator"
-              className="ease group inline-flex items-center gap-2 font-medium text-accent hover:text-ink"
+              className="ease group inline-flex items-center gap-2 font-medium text-ink link-u"
             >
               Read the case study
               <ArrowRight
@@ -131,12 +131,12 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">
+          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
             Selected work
           </h2>
           <Link
             href="/projects"
-            className="ease group inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-ink"
+            className="ease group inline-flex items-center gap-2 text-sm font-medium text-ink link-u"
           >
             All {projects.length} projects
             <ArrowRight
@@ -152,7 +152,7 @@ const slides: Slide[] = [
             <li key={p.slug}>
               <Link
                 href={`/projects/${p.slug}`}
-                className="panel group ease flex h-full flex-col overflow-hidden no-underline hover:border-accent"
+                className="panel group flex h-full flex-col overflow-hidden no-underline transition-colors duration-500 hover:border-rule-strong"
               >
                 <span className="hidden aspect-[16/10] overflow-hidden bg-black/40 sm:block">
                   {p.cover.src ? (
@@ -171,9 +171,9 @@ const slides: Slide[] = [
                 <span className="flex flex-1 flex-col p-5">
                   <span className="num font-mono text-xs text-ink-2">
                     {p.date}
-                    {p.status && <span className="ml-2 text-accent-2">{p.status}</span>}
+                    {p.status && <span className="ml-2 text-accent">{p.status}</span>}
                   </span>
-                  <span className="mt-2 block text-lg font-semibold tracking-tight group-hover:text-accent">
+                  <span className="mt-2 block text-xl font-light tracking-tight">
                     {p.title}
                   </span>
                   <span className="mt-2 line-clamp-3 block text-sm text-ink-2">{p.problem}</span>
@@ -192,7 +192,7 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-6">
-          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">
+          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
             Three filed patents, on record
           </h2>
           <p className="mt-4 max-w-[46ch] text-ink-2">
@@ -203,7 +203,7 @@ const slides: Slide[] = [
             {proof.map((item) => (
               <div key={item.value} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
                 <dt className="text-sm text-ink-2">{item.detail}</dt>
-                <dd className="num font-mono text-sm text-accent">{item.value}</dd>
+                <dd className="num font-mono text-sm text-ink">{item.value}</dd>
               </div>
             ))}
           </dl>
@@ -233,7 +233,7 @@ const slides: Slide[] = [
     label: "What I do",
     content: (
       <div className="mx-auto w-full max-w-6xl">
-        <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">What I do</h2>
+        <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">What I do</h2>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {strengths.map((s) => (
             <li key={s.title} className="panel overflow-hidden">
@@ -247,11 +247,11 @@ const slides: Slide[] = [
                 )}
               </div>
               <div className="p-5">
-              <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
+              <h3 className="text-xl font-light tracking-tight">{s.title}</h3>
               <p className="mt-3 text-sm text-ink-2">{s.body}</p>
               <ul className="mt-4 flex flex-wrap gap-1.5">
                 {s.tools.map((t) => (
-                  <li key={t} className="border border-rule px-2 py-0.5 font-mono text-[0.7rem] text-ink-2">
+                  <li key={t} className="rounded-full border border-rule px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-2">
                     {t}
                   </li>
                 ))}
@@ -268,9 +268,9 @@ const slides: Slide[] = [
     label: "Contact",
     content: (
       <div className="mx-auto w-full max-w-4xl text-center">
-        <h2 className="text-[clamp(2rem,5vw,3.5rem)] leading-tight font-semibold tracking-[-0.03em]">
+        <h2 className="display text-[clamp(2.5rem,6vw,4.75rem)]">
           Ping me. I respond faster
-          <span className="block text-accent">than a bus timeout.</span>
+          <span className="block text-ink-2">than a bus timeout.</span>
         </h2>
         <p className="mx-auto mt-6 max-w-[52ch] text-lg text-ink-2">
           Robotics, embedded or autonomous vehicles. Somewhere I can be useful from the first week and learn from

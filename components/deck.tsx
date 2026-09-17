@@ -70,7 +70,7 @@ export function Deck({ slides }: { slides: Slide[] }) {
 
   return (
     <div
-      className="relative flex min-h-[calc(100dvh-8.5rem)] flex-col"
+      className="relative flex min-h-[100dvh] flex-col"
       onTouchStart={(e) => {
         const t = e.changedTouches[0];
         touchStart.current = { x: t.clientX, y: t.clientY };
@@ -98,14 +98,14 @@ export function Deck({ slides }: { slides: Slide[] }) {
               >
                 <span
                   className={`text-xs tracking-wide transition-all duration-300 ${
-                    i === index ? "text-ink opacity-100" : "text-ink-2 opacity-0 group-hover:opacity-100"
+                    i === index ? "font-mono text-[0.62rem] tracking-[0.2em] uppercase text-ink opacity-100" : "font-mono text-[0.62rem] tracking-[0.2em] uppercase text-ink-2 opacity-0 group-hover:opacity-100"
                   }`}
                 >
                   {s.label}
                 </span>
                 <span
                   className={`block h-px transition-all duration-300 ${
-                    i === index ? "w-10 bg-accent" : "w-5 bg-rule-strong group-hover:w-8 group-hover:bg-ink-2"
+                    i === index ? "w-10 bg-ink" : "w-5 bg-rule-strong group-hover:w-8 group-hover:bg-ink-2"
                   }`}
                 />
               </button>
@@ -123,7 +123,7 @@ export function Deck({ slides }: { slides: Slide[] }) {
             animate={{ opacity: 1, x: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: direction * -40 }}
             transition={{ duration: 0.5, ease: EASE }}
-            className="flex min-h-[calc(100dvh-8.5rem)] flex-col justify-center px-4 py-10 sm:px-8 lg:px-16"
+            className="flex min-h-[100dvh] flex-col justify-center px-4 pt-28 pb-32 sm:px-8 lg:px-16"
           >
             {slide.content}
           </motion.section>
@@ -131,13 +131,13 @@ export function Deck({ slides }: { slides: Slide[] }) {
       </div>
 
       {/* controls */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-ground/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-8">
-          <p className="num font-mono text-xs text-ink-2">
+      <div className="fixed inset-x-3 bottom-3 z-30 sm:inset-x-6 sm:bottom-5">
+        <div className="glass relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 overflow-hidden rounded-full pr-2 pl-6">
+          <p className="eyebrow">
             <span className="text-ink">{String(index + 1).padStart(2, "0")}</span>
-            <span className="mx-1">/</span>
+            <span className="mx-1.5 opacity-50">/</span>
             {String(slides.length).padStart(2, "0")}
-            <span className="ml-3 hidden text-ink sm:inline">{slide.label}</span>
+            <span className="ml-4 hidden text-ink sm:inline">{slide.label}</span>
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -145,7 +145,7 @@ export function Deck({ slides }: { slides: Slide[] }) {
               onClick={() => go(index - 1)}
               disabled={index === 0}
               aria-label="Previous section"
-              className="ease flex h-10 w-10 items-center justify-center border border-rule text-ink hover:border-accent hover:text-accent disabled:opacity-30 disabled:hover:border-rule disabled:hover:text-ink"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-300 hover:border-ink disabled:opacity-30 disabled:hover:border-rule-strong"
             >
               <ArrowLeft size={16} weight="bold" aria-hidden />
             </button>
@@ -154,19 +154,19 @@ export function Deck({ slides }: { slides: Slide[] }) {
               onClick={() => go(index + 1)}
               disabled={last}
               aria-label="Next section"
-              className="ease flex h-10 items-center gap-2 border border-accent bg-accent px-4 text-sm font-medium text-accent-ink hover:bg-accent-2 hover:border-accent-2 disabled:opacity-30"
+              className="flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-ground transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)] disabled:opacity-30"
             >
               {last ? "End" : "Next"}
               <ArrowRight size={16} weight="bold" aria-hidden />
             </button>
           </div>
-        </div>
-        <div className="h-px w-full bg-rule">
-          <motion.div
-            className="h-px bg-accent"
-            animate={{ width: `${((index + 1) / slides.length) * 100}%` }}
-            transition={{ duration: 0.5, ease: EASE }}
-          />
+          <div className="absolute inset-x-10 bottom-0 h-px bg-rule">
+            <motion.div
+              className="h-px bg-ink"
+              animate={{ width: `${((index + 1) / slides.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: EASE }}
+            />
+          </div>
         </div>
       </div>
     </div>

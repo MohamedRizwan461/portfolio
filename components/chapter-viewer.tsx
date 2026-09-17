@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { chapters, type ChapterMedia } from "@/lib/journey";
 import { markChapterRead } from "@/lib/progress";
+import { Mask } from "./motion-bits";
 import dynamic from "next/dynamic";
 
 const RobotSelf = dynamic(() => import("./robot-self"), { ssr: false });
@@ -148,7 +149,7 @@ export function ChapterViewer() {
               aria-current={i === index ? "step" : undefined}
               className="group block w-full text-left"
             >
-              <span className="block h-0.5 w-full overflow-hidden bg-rule">
+              <span className="block h-px w-full overflow-hidden bg-rule-strong">
                 <motion.span
                   className="block h-full bg-accent"
                   initial={false}
@@ -157,8 +158,8 @@ export function ChapterViewer() {
                 />
               </span>
               <span
-                className={`mt-2 hidden truncate font-mono text-[0.65rem] tracking-wide transition-colors md:block ${
-                  i === index ? "text-accent" : "text-ink-2 group-hover:text-ink"
+                className={`mt-2.5 hidden truncate font-mono text-[0.6rem] tracking-[0.18em] uppercase transition-colors md:block ${
+                  i === index ? "text-ink" : "text-ink-2 group-hover:text-ink"
                 }`}
               >
                 {ch.domain}
@@ -181,22 +182,25 @@ export function ChapterViewer() {
           >
             {/* words */}
             <div className="flex min-h-0 flex-col lg:col-span-5">
-              <p className="num flex gap-3 font-mono text-xs">
-                <span className="text-accent">{c.domain}</span>
-                <span className="text-ink-2">{c.years}</span>
+              <p className="eyebrow">
+                <span className="text-accent">{String(index + 1).padStart(2, "0")}</span>
+                <span className="mx-2 opacity-40">/</span>
+                {c.domain}
+                <span className="mx-2 opacity-40">/</span>
+                {c.years}
               </p>
-              <h2 className="mt-2 text-[clamp(1.5rem,2.6vw,2.25rem)] leading-tight font-semibold tracking-[-0.025em]">
-                {c.title}
+              <h2 className="display mt-4 text-[clamp(2rem,3.6vw,3.25rem)]">
+                <Mask>{c.title}</Mask>
               </h2>
-              <div className="mt-3 space-y-3 text-[0.95rem] leading-relaxed text-ink-2">
+              <div className="mt-5 space-y-3 text-[0.98rem] leading-relaxed font-light text-ink-2">
                 {c.body.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
               </div>
               {c.facts && (
-                <dl className="mt-4 divide-y divide-rule border-y border-rule text-sm">
+                <dl className="mt-6 divide-y divide-rule border-y border-rule text-sm">
                   {c.facts.map((f) => (
-                    <div key={f.k} className="grid grid-cols-[9rem_1fr] gap-3 py-1.5">
+                    <div key={f.k} className="grid grid-cols-[9rem_1fr] gap-3 py-2">
                       <dt className="text-ink-2">{f.k}</dt>
                       <dd className="num font-mono text-[0.8rem]">{f.v}</dd>
                     </div>
@@ -206,9 +210,9 @@ export function ChapterViewer() {
               {c.link && (
                 <Link
                   href={c.link.href}
-                  className="ease group mt-4 inline-flex w-fit items-center gap-2 text-sm font-medium text-accent hover:text-ink"
+                  className="group mt-6 inline-flex w-fit items-center gap-2 text-sm font-medium text-ink no-underline"
                 >
-                  {c.link.label}
+                  <span className="link-u">{c.link.label}</span>
                   <ArrowRight size={14} weight="bold" aria-hidden className="transition-transform group-hover:translate-x-1" />
                 </Link>
               )}
@@ -241,17 +245,17 @@ export function ChapterViewer() {
       </div>
 
       {/* controls */}
-      <div className="mt-5 flex items-center justify-between border-t border-rule pt-3">
-        <p className="num font-mono text-xs text-ink-2">
+      <div className="mt-5 flex items-center justify-between border-t border-rule pt-4">
+        <p className="eyebrow">
           <span className="text-ink">{String(index + 1).padStart(2, "0")}</span> / {String(chapters.length).padStart(2, "0")}
-          <span className="ml-3 hidden sm:inline">← → to move between chapters</span>
+          <span className="ml-4 hidden sm:inline">Arrow keys to move</span>
         </p>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => go(index - 1)}
             aria-label="Previous chapter"
-            className="ease flex h-9 w-9 items-center justify-center border border-rule text-ink hover:border-accent hover:text-accent"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-300 hover:border-ink"
           >
             <ArrowLeft size={15} weight="bold" aria-hidden />
           </button>
@@ -259,7 +263,7 @@ export function ChapterViewer() {
             type="button"
             onClick={() => go(index + 1)}
             aria-label="Next chapter"
-            className="ease flex h-9 items-center gap-2 border border-accent bg-accent px-4 text-sm font-medium text-accent-ink hover:border-accent-2 hover:bg-accent-2"
+            className="group flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-ground transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
           >
             {index === chapters.length - 1 ? "Start over" : "Next chapter"}
             <ArrowRight size={15} weight="bold" aria-hidden />

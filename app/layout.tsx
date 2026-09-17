@@ -4,6 +4,7 @@ import { Backdrop } from "@/components/backdrop";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeApplier } from "@/components/theme-applier";
 import { ConditionalFooter } from "@/components/site-chrome";
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { site } from "@/lib/content";
 import "./globals.css";
 
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d0f12",
+  themeColor: "#06080b",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col">
         <ThemeApplier />
+        <SmoothScroll />
         <Backdrop />
         <script
           type="application/ld+json"

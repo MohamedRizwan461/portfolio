@@ -2,17 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { canFrameBytes, site, type Figure as FigureData } from "@/lib/content";
+import { ChicagoClock } from "./chicago-clock";
 
 export function Container({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`mx-auto w-full max-w-6xl px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
+/* Buttons are full pills; surfaces stay sharp. */
 const buttonLook = {
-  primary: "bg-accent text-accent-ink border-accent hover:bg-ink hover:border-ink hover:text-ground",
-  secondary: "bg-transparent text-ink border-rule-strong hover:border-accent hover:text-accent",
+  primary:
+    "bg-ink text-ground border-ink hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent),0_18px_50px_-18px_var(--accent)]",
+  secondary:
+    "bg-[color-mix(in_srgb,var(--ink)_3%,transparent)] text-ink border-rule-strong backdrop-blur hover:border-[color-mix(in_srgb,var(--ink)_45%,transparent)] hover:bg-[color-mix(in_srgb,var(--ink)_7%,transparent)]",
 };
 const buttonBase =
-  "ease inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap border px-5 text-sm font-medium no-underline active:translate-y-px";
+  "group/btn inline-flex h-12 items-center justify-center gap-2.5 whitespace-nowrap rounded-full border px-6 text-[0.9rem] font-medium no-underline transition-[box-shadow,background-color,border-color,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] [&_svg]:transition-transform [&_svg]:duration-500 hover:[&_svg]:translate-x-0.5";
 
 type ButtonProps = ComponentProps<typeof Link> & { variant?: keyof typeof buttonLook };
 
@@ -47,23 +51,19 @@ export function SpecTable({
   return (
     <table className="w-full border-collapse text-sm">
       {caption && <caption className="sr-only">{caption}</caption>}
-      <thead>
-        <tr className="border-b border-rule-strong text-left">
-          <th scope="col" className="py-2 pr-4 text-left font-medium">
-            Parameter
-          </th>
-          <th scope="col" className="py-2 text-left font-medium">
-            Value
-          </th>
+      <thead className="sr-only">
+        <tr>
+          <th scope="col">Parameter</th>
+          <th scope="col">Value</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.parameter} className="ease border-b border-rule align-top hover:bg-accent-soft">
-            <th scope="row" className="py-2 pr-4 text-left font-normal text-ink-2">
+          <tr key={row.parameter} className="border-b border-rule align-top transition-colors duration-300 hover:bg-[color-mix(in_srgb,var(--ink)_3%,transparent)]">
+            <th scope="row" className="w-[42%] py-3.5 pr-4 text-left font-normal text-ink-2">
               {row.parameter}
             </th>
-            <td className="num py-2 font-mono text-[0.8125rem]">{row.value}</td>
+            <td className="num py-3.5 text-right font-mono text-[0.8125rem] text-ink">{row.value}</td>
           </tr>
         ))}
       </tbody>
@@ -118,7 +118,7 @@ export function Figure({
 }) {
   return (
     <figure className="m-0">
-      <div className="border border-rule">
+      <div className="overflow-hidden border border-rule">
         {figure.kind === "canFrame" ? (
           <CanFrame />
         ) : figure.src ? (
@@ -135,46 +135,84 @@ export function Figure({
           </div>
         ) : null}
       </div>
-      <figcaption className="mt-2 text-xs text-ink-2">
-        {number !== undefined && <span className="num mr-2 font-mono text-ink">Fig. {number}</span>}
+      <figcaption className="mt-3 flex gap-3 text-xs leading-relaxed text-ink-2">
+        {number !== undefined && <span className="eyebrow shrink-0 !text-[0.62rem] text-ink">Fig. {String(number).padStart(2, "0")}</span>}
         {figure.caption}
       </figcaption>
     </figure>
   );
 }
 
+const footerNav = [
+  { href: "/tour", label: "Guided tour" },
+  { href: "/projects", label: "Projects" },
+  { href: "/about", label: "About" },
+  { href: "/resume", label: "Resume" },
+  { href: "/contact", label: "Contact" },
+];
+
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t-2 border-rule-strong">
-      <Container className="grid gap-6 py-8 text-sm sm:grid-cols-[1fr_auto] sm:items-end">
-        <div>
-          <p className="font-medium">{site.name}</p>
-          <p className="text-ink-2">{site.role}. {site.location}</p>
+    <footer className="relative mt-32 border-t border-rule">
+      <Container className="pt-20 pb-10 sm:pt-28">
+        <p className="eyebrow">What next</p>
+        <h2 className="display mt-5 max-w-[14ch] text-[clamp(2.75rem,8vw,6.5rem)]">Let&apos;s build something that moves.</h2>
+        <a
+          href={`mailto:${site.email}`}
+          className="link-u mt-10 inline-block text-[clamp(1.15rem,2.6vw,2rem)] font-light tracking-tight text-ink"
+        >
+          {site.email}
+        </a>
+
+        <div className="mt-20 grid gap-10 border-t border-rule pt-10 sm:grid-cols-3">
+          <div>
+            <p className="eyebrow">Navigate</p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {footerNav.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="link-u text-ink-2 hover:text-ink">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="eyebrow">Connect</p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <a className="link-u text-ink-2 hover:text-ink" href={site.linkedin} rel="noopener" target="_blank">
+                  LinkedIn
+                </a>
+              </li>
+              <li>
+                <a className="link-u text-ink-2 hover:text-ink" href={site.github} rel="noopener" target="_blank">
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a className="link-u text-ink-2 hover:text-ink" href={site.resumePdf} download>
+                  Download resume
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="eyebrow">Based in</p>
+            <p className="mt-4 text-sm text-ink">Chicago, IL</p>
+            <p className="mt-1 font-mono text-sm text-ink-2">
+              <ChicagoClock /> <span className="text-[0.7rem] tracking-widest">CT</span>
+            </p>
+          </div>
         </div>
-        <ul className="flex flex-wrap gap-x-5 gap-y-2">
-          <li>
-            <a className="ease hover:text-accent" href={`mailto:${site.email}`}>
-              Email
-            </a>
-          </li>
-          <li>
-            <a className="ease hover:text-accent" href={site.linkedin} rel="noopener" target="_blank">
-              LinkedIn
-            </a>
-          </li>
-          <li>
-            <a className="ease hover:text-accent" href={site.github} rel="noopener" target="_blank">
-              GitHub
-            </a>
-          </li>
-          <li>
-            <a className="ease hover:text-accent" href={site.resumePdf} download>
-              Download resume
-            </a>
-          </li>
-        </ul>
+
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6">
+          <p className="eyebrow">{site.name}</p>
+          <a href="#main" className="eyebrow link-u hover:text-ink">
+            Back to top
+          </a>
+        </div>
       </Container>
     </footer>
   );
 }
-

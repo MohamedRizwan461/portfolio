@@ -1,0 +1,120 @@
+"use client";
+
+import Link from "next/link";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { useState } from "react";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import type { Project } from "@/lib/content";
+import { ProjectVisual } from "./project-visual";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * The index of work as large editorial rows. On a desktop the cover floats
+ * beside the cursor; the other rows step back while one is in focus.
+ */
+export function ProjectsIndex({ projects }: { projects: Project[] }) {
+  const reduce = useReducedMotion();
+  const [hover, setHover] = useState<number | null>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 160, damping: 22, mass: 0.6 });
+  const sy = useSpring(y, { stiffness: 160, damping: 22, mass: 0.6 });
+
+  return (
+    <div
+      className="relative"
+      onPointerMove={(e) => {
+        x.set(e.clientX);
+        y.set(e.clientY);
+      }}
+    >
+      <ul className="border-t border-rule">
+        {projects.map((p, i) => (
+          <motion.li
+            key={p.slug}
+            initial={reduce ? false : { opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.9, delay: 0.04 * (i % 3), ease: EASE }}
+            className="border-b border-rule"
+          >
+            <Link
+              href={`/projects/${p.slug}`}
+              onPointerEnter={() => setHover(i)}
+              onPointerLeave={() => setHover(null)}
+              onFocus={() => setHover(i)}
+              onBlur={() => setHover(null)}
+              className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 py-8 no-underline transition-opacity duration-500 sm:py-10"
+              style={{ opacity: hover !== null && hover !== i ? 0.38 : 1 }}
+            >
+              <span className="eyebrow col-span-2 pt-2 sm:col-span-1 sm:pt-3">{String(i + 1).padStart(2, "0")}</span>
+
+              <span className="col-span-10 sm:col-span-7">
+                <span className="display block text-[clamp(1.75rem,3.8vw,3.25rem)] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-3">
+                  {p.title}
+                </span>
+                <span className="mt-3 line-clamp-2 block max-w-[58ch] text-[0.95rem] leading-relaxed text-ink-2">{p.problem}</span>
+                <span className="mt-4 block font-mono text-[0.7rem] tracking-wide text-ink-2">{p.stack.join("  ·  ")}</span>
+                <span className="mt-5 block aspect-[16/10] overflow-hidden border border-rule lg:hidden">
+                  <ProjectVisual project={p} sizes="100vw" />
+                </span>
+              </span>
+
+              <span className="col-span-12 flex items-start justify-between gap-4 sm:col-span-4 sm:flex-col sm:items-end sm:pt-3">
+                <span className="eyebrow sm:text-right">
+                  {p.date}
+                  <span className="mx-2 opacity-40">/</span>
+                  {p.context}
+                </span>
+                {p.status && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--accent)_45%,transparent)] px-3 py-1 font-mono text-[0.62rem] tracking-[0.2em] text-accent uppercase">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent motion-safe:animate-pulse" />
+                    {p.status}
+                  </span>
+                )}
+                <span className="hidden h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:rotate-45 group-hover:border-ink group-hover:bg-ink group-hover:text-ground sm:flex">
+                  <ArrowUpRight size={16} weight="bold" aria-hidden />
+                </span>
+              </span>
+            </Link>
+          </motion.li>
+        ))}
+      </ul>
+
+      {/* the floating cover */}
+      {!reduce && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none fixed top-0 left-0 z-30 hidden w-[23rem] lg:block"
+          style={{ x: sx, y: sy, translateX: "18%", translateY: "-50%" }}
+        >
+          <AnimatePresence>
+            {hover !== null && (
+              <motion.div
+                key="frame"
+                className="relative aspect-[4/3] overflow-hidden border border-rule-strong bg-[var(--surface)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.85)]"
+                initial={{ opacity: 0, scale: 0.8, rotate: -4 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.85, rotate: 3 }}
+                transition={{ duration: 0.5, ease: EASE }}
+              >
+                {projects.map((p, i) => (
+                  <motion.div
+                    key={p.slug}
+                    className="absolute inset-0"
+                    initial={false}
+                    animate={{ opacity: hover === i ? 1 : 0, scale: hover === i ? 1 : 1.12 }}
+                    transition={{ duration: 0.6, ease: EASE }}
+                  >
+                    <ProjectVisual project={p} sizes="368px" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </div>
+  );
+}

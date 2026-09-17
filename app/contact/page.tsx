@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { EnvelopeSimple, GithubLogo, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { ContactForm } from "@/components/contact-form";
-import { Reveal } from "@/components/motion-bits";
-import { Branch, Wire, WireSection } from "@/components/wire";
+import { Mask, Reveal } from "@/components/motion-bits";
 import { Container } from "@/components/ui";
 import { site } from "@/lib/content";
 
@@ -14,52 +13,67 @@ export const metadata: Metadata = {
 };
 
 const channels = [
-  { label: "Email", value: site.email, href: `mailto:${site.email}`, Icon: EnvelopeSimple },
-  { label: "LinkedIn", value: "mohamed-rizwan-ameer-john-3a459a231", href: site.linkedin, Icon: LinkedinLogo, external: true },
-  { label: "GitHub", value: "MohamedRizwan461", href: site.github, Icon: GithubLogo, external: true },
+  { label: "Email", value: site.email, href: `mailto:${site.email}` },
+  { label: "LinkedIn", value: "Mohamed Rizwan Ameer John", href: site.linkedin, external: true },
+  { label: "GitHub", value: "MohamedRizwan461", href: site.github, external: true },
 ];
 
 export default function ContactPage() {
   return (
-    <Container className="pt-10 sm:pt-16">
-      <Reveal>
-        <h1 className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] sm:text-6xl">Contact</h1>
-        <p className="mt-6 max-w-[52ch] text-xl leading-snug text-ink-2 sm:text-2xl">
-          Hiring for robotics, embedded or EV work, or want to talk through a project? Any of these reach me
-          directly.
+    <Container className="pt-36 sm:pt-44">
+      <Mask>
+        <p className="eyebrow">Contact</p>
+      </Mask>
+      <h1 className="display mt-6 text-[clamp(3.75rem,12vw,10rem)] leading-[0.92]">
+        <Mask delay={0.08}>Let&apos;s talk.</Mask>
+      </h1>
+      <Reveal delay={0.3} className="mt-12 grid gap-6 border-t border-rule pt-6 sm:grid-cols-12">
+        <p className="eyebrow sm:col-span-4">Robotics · Embedded · EV</p>
+        <p className="text-lg leading-relaxed font-light text-ink-2 sm:col-span-7 sm:col-start-6 sm:text-xl">
+          Hiring for robotics, embedded or EV work, or want to talk through a project? Any of these reach me directly.
         </p>
       </Reveal>
 
-      <Wire className="mt-16 space-y-14">
-        <WireSection title="Direct" id="channels">
-          <ul className="mt-4 max-w-xl">
-            {channels.map(({ label, value, href, Icon, external }) => (
-              <li key={label} className="border-b border-rule">
-                <a
-                  href={href}
-                  {...(external ? { target: "_blank", rel: "noopener" } : {})}
-                  className="ease group grid grid-cols-[1.5rem_5rem_1fr] items-center gap-3 py-4 no-underline hover:text-accent"
-                >
-                  <Icon size={20} aria-hidden />
-                  <span className="text-sm text-ink-2 group-hover:text-accent">{label}</span>
-                  <span className="font-mono text-sm break-words">{value}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </WireSection>
+      <ul className="mt-20 border-t border-rule">
+        {channels.map(({ label, value, href, external }, i) => (
+          <li key={label} className="border-b border-rule">
+            <Reveal delay={0.05 * i}>
+              <a
+                href={href}
+                {...(external ? { target: "_blank", rel: "noopener" } : {})}
+                className="group grid grid-cols-12 items-center gap-4 py-8 no-underline sm:py-10"
+              >
+                <span className="eyebrow col-span-12 sm:col-span-3">
+                  {String(i + 1).padStart(2, "0")} <span className="mx-2 opacity-40">/</span> {label}
+                </span>
+                <span className="display col-span-10 text-[clamp(1.5rem,4vw,3rem)] break-words text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-3 sm:col-span-8">
+                  {value}
+                </span>
+                <span className="col-span-2 flex justify-end sm:col-span-1">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:rotate-45 group-hover:border-ink group-hover:bg-ink group-hover:text-ground">
+                    <ArrowUpRight size={18} weight="bold" aria-hidden />
+                  </span>
+                </span>
+              </a>
+            </Reveal>
+          </li>
+        ))}
+      </ul>
 
-        <WireSection title="Send a message" id="message">
-          <p className="mt-4 text-sm text-ink-2">
+      <section aria-labelledby="message" className="mt-32 grid gap-10 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <p className="eyebrow">Or write here</p>
+          <h2 id="message" className="display mt-4 text-[clamp(2rem,4vw,3rem)]">
+            Send a message
+          </h2>
+          <p className="mt-4 max-w-[36ch] text-sm leading-relaxed text-ink-2">
             Opens your email app with the message filled in. Nothing is stored on this site.
           </p>
-          <Branch>
-            <div className="max-w-2xl">
-              <ContactForm email={site.email} />
-            </div>
-          </Branch>
-        </WireSection>
-      </Wire>
+        </div>
+        <div className="lg:col-span-7 lg:col-start-6">
+          <ContactForm email={site.email} />
+        </div>
+      </section>
     </Container>
   );
 }
