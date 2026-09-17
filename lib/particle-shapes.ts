@@ -259,3 +259,150 @@ export function textCloud(n: number, rand: () => number, lines: string[], family
   }
   return out;
 }
+
+/* ---------------------------------------------------------------- story shapes */
+
+/** A DNA double helix lying across the frame, rungs and all. */
+export function helix(n: number, rand: () => number): Cloud {
+  const out = new Float32Array(n * 3);
+  const len = 10;
+  for (let i = 0; i < n; i++) {
+    const t = (rand() - 0.5) * len;
+    const a = t * 1.25;
+    const kind = rand();
+    let x = t;
+    let y: number;
+    let z: number;
+    if (kind < 0.62) {
+      const phase = kind < 0.31 ? 0 : Math.PI;
+      y = Math.sin(a + phase) * 1.3;
+      z = Math.cos(a + phase) * 1.3;
+      const j = 0.07;
+      x += (rand() - 0.5) * j;
+      y += (rand() - 0.5) * j;
+      z += (rand() - 0.5) * j;
+    } else {
+      // rungs every 0.42 units along the axis
+      const r = Math.round(t / 0.42) * 0.42;
+      const ra = r * 1.25;
+      const s = rand() * 2 - 1;
+      x = r + (rand() - 0.5) * 0.04;
+      y = Math.sin(ra) * 1.3 * s;
+      z = Math.cos(ra) * 1.3 * s;
+    }
+    out[i * 3] = x;
+    out[i * 3 + 1] = y;
+    out[i * 3 + 2] = z;
+  }
+  return out;
+}
+
+/** A leg in profile wearing the knee exoskeleton: braces, hinge and the pneumatic cylinder. */
+export function kneeLeg(n: number, rand: () => number): Cloud {
+  const parts: Part[] = [];
+  const seg = (a: [number, number], b: [number, number], r: number, w: number, z = 0) => {
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const ang = Math.atan2(b[0] - a[0], b[1] - a[1]);
+    parts.push({ geo: new THREE.CapsuleGeometry(r, len, 6, 20), pos: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, z], rot: [0, 0, -ang], w });
+  };
+  const hip: [number, number] = [0, 2.3];
+  const knee: [number, number] = [0.45, 0];
+  const ankle: [number, number] = [-0.05, -2.3];
+  seg(hip, knee, 0.42, 12);
+  seg(knee, ankle, 0.3, 9);
+  parts.push({ geo: new THREE.BoxGeometry(1.1, 0.22, 0.5), pos: [0.35, -2.55, 0], w: 3 });
+  // braces around thigh and shin
+  const braces: [[number, number], number][] = [
+    [[0.18, 1.5], 0.5],
+    [[0.34, 0.75], 0.47],
+    [[0.32, -0.8], 0.37],
+    [[0.12, -1.6], 0.34],
+  ];
+  for (const [p, r] of braces) parts.push({ geo: new THREE.TorusGeometry(r, 0.04, 8, 40), pos: [p[0], p[1], 0], rot: [Math.PI / 2, 0, 0], w: 2.2 });
+  // hinge at the knee
+  parts.push({ geo: new THREE.CylinderGeometry(0.22, 0.22, 1.05, 28), pos: [knee[0], knee[1], 0], rot: [Math.PI / 2, 0, 0], w: 3 });
+  // pneumatic cylinder in front, body then rod
+  seg([0.95, 1.4], [1.2, -0.1], 0.1, 3.5, 0.3);
+  seg([1.2, -0.1], [0.85, -1.2], 0.035, 1.2, 0.3);
+  // struts back to the braces
+  seg([0.55, 1.4], [0.95, 1.4], 0.03, 0.6, 0.3);
+  seg([0.4, -1.2], [0.85, -1.2], 0.03, 0.6, 0.3);
+  return sample(parts, n, rand, [0, 0.35, 0]);
+}
+
+/** A globe with the route: Chennai, then Egypt for the Grand Finale, then Chicago. */
+export function globeRoute(n: number, rand: () => number): Cloud {
+  const out = new Float32Array(n * 3);
+  const R = 2.4;
+  const toVec = (lat: number, lon: number) => {
+    const la = (lat * Math.PI) / 180;
+    const lo = (lon * Math.PI) / 180;
+    return new THREE.Vector3(R * Math.cos(la) * Math.sin(lo), R * Math.sin(la), R * Math.cos(la) * Math.cos(lo));
+  };
+  const cities = [toVec(13.08, 80.27), toVec(26.8, 30.8), toVec(41.88, -87.63)];
+  const legs = [
+    [cities[0], cities[1]],
+    [cities[1], cities[2]],
+  ];
+  // turn the globe so the whole route faces the camera
+  const spin = new THREE.Matrix4().makeRotationY(0.1).multiply(new THREE.Matrix4().makeRotationX(0.35));
+  const v = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const k = rand();
+    if (k < 0.5) {
+      // sparse shell, denser along latitude lines
+      const u = rand() * 2 - 1;
+      const a = rand() * Math.PI * 2;
+      let lat = Math.asin(u);
+      if (rand() < 0.45) lat = Math.round(lat / 0.35) * 0.35;
+      v.set(R * Math.cos(lat) * Math.sin(a), R * Math.sin(lat), R * Math.cos(lat) * Math.cos(a));
+    } else if (k < 0.85) {
+      const [p, q] = legs[rand() < 0.5 ? 0 : 1];
+      const t = rand();
+      v.copy(p).lerp(q, t).normalize().multiplyScalar(R + Math.sin(t * Math.PI) * 0.9);
+    } else {
+      const c = cities[Math.floor(rand() * 3)];
+      const r = Math.cbrt(rand()) * 0.16;
+      const u = rand() * 2 - 1;
+      const a = rand() * Math.PI * 2;
+      const s = Math.sqrt(1 - u * u);
+      v.set(c.x + Math.cos(a) * s * r, c.y + Math.sin(a) * s * r, c.z + u * r);
+    }
+    v.applyMatrix4(spin);
+    out[i * 3] = v.x;
+    out[i * 3 + 1] = v.y;
+    out[i * 3 + 2] = v.z;
+  }
+  return out;
+}
+
+/** The mobile robot on the floor, the bottle it has to avoid, and the goal marker. */
+export function roverScene(n: number, rand: () => number): Cloud {
+  const parts: Part[] = [];
+  parts.push({ geo: new THREE.BoxGeometry(1.8, 0.45, 1.3), pos: [-1.2, 0.2, 0], w: 12 });
+  parts.push({ geo: new THREE.BoxGeometry(1.4, 0.05, 1.1), pos: [-1.2, 0.55, 0], w: 3 });
+  for (const x of [-1.8, -0.6])
+    for (const z of [-0.72, 0.72]) parts.push({ geo: new THREE.CylinderGeometry(0.32, 0.32, 0.18, 28), pos: [x, -0.05, z], rot: [Math.PI / 2, 0, 0], w: 2.4 });
+  parts.push({ geo: new THREE.CylinderGeometry(0.22, 0.24, 0.2, 28), pos: [-1.2, 0.72, 0], w: 2 });
+  for (const z of [-0.3, 0.3]) parts.push({ geo: new THREE.CylinderGeometry(0.1, 0.1, 0.12, 20), pos: [-0.28, 0.25, z], rot: [0, 0, Math.PI / 2], w: 0.8 });
+  // the bottle
+  parts.push({ geo: new THREE.CylinderGeometry(0.22, 0.22, 1.1, 28), pos: [1.3, 0.2, -0.6], w: 3 });
+  parts.push({ geo: new THREE.CylinderGeometry(0.08, 0.2, 0.3, 20), pos: [1.3, 0.9, -0.6], w: 1 });
+  // the goal marker and the path around the bottle
+  parts.push({ geo: new THREE.TorusGeometry(0.5, 0.03, 6, 48), pos: [3.3, -0.36, 0.2], rot: [Math.PI / 2, 0, 0], w: 1.6 });
+  parts.push({ geo: new THREE.TorusGeometry(0.22, 0.03, 6, 32), pos: [3.3, -0.36, 0.2], rot: [Math.PI / 2, 0, 0], w: 0.8 });
+  const path = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.2, -0.37, 0),
+    new THREE.Vector3(1.0, -0.37, 0.7),
+    new THREE.Vector3(2.2, -0.37, 0.6),
+    new THREE.Vector3(3.3, -0.37, 0.2),
+  ]);
+  parts.push({ geo: new THREE.TubeGeometry(path, 60, 0.02, 4), w: 1.6 });
+  // lidar rays fanning out
+  for (let k = 0; k < 7; k++) {
+    const a = -0.6 + k * 0.2;
+    const len = 2.4;
+    parts.push({ geo: new THREE.BoxGeometry(len, 0.01, 0.01), pos: [-1.2 + (Math.cos(a) * len) / 2, 0.75, (Math.sin(a) * len) / 2], rot: [0, -a, 0], w: 0.5 });
+  }
+  return sample(parts, n, rand, [0.45, -0.5, 0]);
+}

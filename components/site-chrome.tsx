@@ -6,6 +6,6 @@ import { SiteFooter } from "./ui";
 /** Full-screen pages, and the contact page that already is the sign-off, go without the footer. */
 export function ConditionalFooter() {
   const pathname = usePathname();
-  if (pathname === "/" || pathname === "/tour" || pathname === "/about" || pathname === "/contact") return null;
+  if (pathname === "/" || pathname === "/tour" || pathname === "/about" || pathname === "/contact" || pathname.startsWith("/story")) return null;
   return <SiteFooter />;
 }

@@ -4,9 +4,9 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { chipBoard, core, dust, fit, halo, rng, roboticArm, textCloud, vehicle, type Cloud } from "@/lib/particle-shapes";
+import { chipBoard, core, dust, fit, globeRoute, halo, helix, kneeLeg, rng, roboticArm, roverScene, textCloud, vehicle, type Cloud } from "@/lib/particle-shapes";
 
-export type Cue = "idle" | "core" | "chip" | "arm" | "car" | "name" | "dust";
+export type Cue = "idle" | "core" | "chip" | "arm" | "car" | "name" | "dust" | "helix" | "leg" | "globe" | "rover";
 
 type Look = { dur: number; turb: number; fade: number; pulse: number; spin: number; drift: number };
 const LOOK: Record<Cue, Look> = {
@@ -17,6 +17,10 @@ const LOOK: Record<Cue, Look> = {
   car: { dur: 1.05, turb: 1.3, fade: 1, pulse: 0.6, spin: 1, drift: 0.008 },
   name: { dur: 1.2, turb: 0.9, fade: 1, pulse: 0, spin: 0, drift: 0 },
   dust: { dur: 1.7, turb: 1.8, fade: 0.3, pulse: 0.1, spin: 0.25, drift: 0.05 },
+  helix: { dur: 1.3, turb: 1.4, fade: 1, pulse: 0.55, spin: 1, drift: 0.006 },
+  leg: { dur: 1.2, turb: 1.3, fade: 1, pulse: 0.4, spin: 0.8, drift: 0.006 },
+  globe: { dur: 1.3, turb: 1.4, fade: 1, pulse: 0.7, spin: 0.9, drift: 0.006 },
+  rover: { dur: 1.2, turb: 1.3, fade: 1, pulse: 0.5, spin: 1, drift: 0.006 },
 };
 
 const vertex = /* glsl */ `
@@ -59,7 +63,7 @@ void main() {
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent: string }) {
+function Particles({ cue, reduce, accent, offset = 0 }: { cue: Cue; reduce: boolean; accent: string; offset?: number }) {
   const { viewport, size, clock, camera } = useThree();
   const n = size.width < 768 ? 15000 : 32000;
   const vw = viewport.width;
@@ -78,9 +82,30 @@ function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent:
       arm: fit(roboticArm(n, r), maxW * 0.75, maxH),
       car: fit(vehicle(n, r), maxW, maxH),
       dust: dust(n, r, vw, vh),
-    } satisfies Record<Exclude<Cue, "name">, Cloud>;
+    } satisfies Record<"idle" | "core" | "chip" | "arm" | "car" | "dust", Cloud>;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [n]);
+
+  // story shapes are only built when a cue first asks for them
+  const extra = useRef<Partial<Record<Cue, Cloud>>>({});
+  const storyShape = (c: Cue): Cloud => {
+    const cached = extra.current[c];
+    if (cached) return cached;
+    const wide = vw / vh > 1;
+    const maxW = vw * (wide ? 0.5 : 0.86);
+    const maxH = vh * (wide ? 0.62 : 0.4);
+    const r = rng(17);
+    const cloud =
+      c === "helix"
+        ? fit(helix(n, r), maxW * 1.15, maxH * 0.7)
+        : c === "leg"
+          ? fit(kneeLeg(n, r), maxW * 0.6, maxH)
+          : c === "globe"
+            ? fit(globeRoute(n, r), maxW, maxH)
+            : fit(roverScene(n, r), maxW, maxH * 0.8);
+    extra.current[c] = cloud;
+    return cloud;
+  };
 
   const nameCloud = useRef<Cloud | null>(null);
   const buildName = () => {
@@ -102,7 +127,7 @@ function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent:
 
   const first = useRef(cue);
   const geo = useMemo(() => {
-    const start = shapes[first.current === "name" ? "dust" : first.current];
+    const start = first.current in shapes ? shapes[first.current as keyof typeof shapes] : shapes.dust;
     const g = new THREE.BufferGeometry();
     const rand = new Float32Array(n * 4);
     for (let i = 0; i < rand.length; i++) rand[i] = Math.random();
@@ -147,7 +172,8 @@ function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent:
   const morph = useRef({ start: -10, dur: 1 });
   const look = useRef<Look>(LOOK[first.current]);
   const spinAmp = useRef(LOOK[first.current].spin);
-  const last = useRef<Cue>(first.current);
+  // a story shape asked for on mount still has to form out of the dust
+  const last = useRef<Cue>(first.current in shapes ? first.current : "dust");
   const pointer = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -162,7 +188,8 @@ function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent:
   useEffect(() => {
     if (cue === last.current) return;
     last.current = cue;
-    const target = cue === "name" ? (nameCloud.current ??= buildName()) : shapes[cue];
+    const target =
+      cue === "name" ? (nameCloud.current ??= buildName()) : cue in shapes ? shapes[cue as keyof typeof shapes] : storyShape(cue);
     const from = geo.getAttribute("aFrom").array as Float32Array;
     const to = geo.getAttribute("aTo").array as Float32Array;
     const rand = geo.getAttribute("aRand").array as Float32Array;
@@ -200,11 +227,11 @@ function Particles({ cue, reduce, accent }: { cue: Cue; reduce: boolean; accent:
     camera.lookAt(0, 0, 0);
   });
 
-  return <points geometry={geo} material={mat} frustumCulled={false} />;
+  return <points geometry={geo} material={mat} frustumCulled={false} position={[offset * vw, 0, 0]} />;
 }
 
 /** Full-screen particle field: the intro's stage and the backdrop behind the operator picker. */
-export function ParticleCinema({ cue, reduce, accent = "#3fa9ff" }: { cue: Cue; reduce: boolean; accent?: string }) {
+export function ParticleCinema({ cue, reduce, accent = "#3fa9ff", offset = 0 }: { cue: Cue; reduce: boolean; accent?: string; offset?: number }) {
   return (
     <div className="absolute inset-0" aria-hidden>
       <Canvas
@@ -213,7 +240,7 @@ export function ParticleCinema({ cue, reduce, accent = "#3fa9ff" }: { cue: Cue; 
         gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         onCreated={({ gl }) => gl.setClearColor("#04060a")}
       >
-        <Particles cue={cue} reduce={reduce} accent={accent} />
+        <Particles cue={cue} reduce={reduce} accent={accent} offset={offset} />
         <EffectComposer multisampling={0}>
           <Bloom mipmapBlur intensity={1.1} luminanceThreshold={0.18} luminanceSmoothing={0.35} radius={0.72} />
           <Vignette offset={0.25} darkness={0.8} />
