@@ -2,11 +2,11 @@
 
 /* One theme, locked: a dark instrument panel lit by two signal fields. */
 :root {
-  --ground: #06090e;
+  --ground: #0c1422;
   --panel: rgba(255, 255, 255, 0.035);
   --panel-strong: rgba(255, 255, 255, 0.07);
   --ink: #eef2f6;
-  --ink-2: #9aa7b4;
+  --ink-2: #b4c0cc;
   --rule: rgba(255, 255, 255, 0.12);
   --rule-strong: rgba(255, 255, 255, 0.28);
   --accent: #4d8dff;
@@ -104,7 +104,7 @@ p {
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 .bd-field-a {
@@ -112,7 +112,8 @@ p {
   left: -10vw;
   width: 75vw;
   height: 75vw;
-  background: radial-gradient(circle at 50% 50%, rgba(77, 141, 255, 0.5), transparent 62%);
+  background: radial-gradient(circle at 50% 50%, var(--field-a, rgba(77, 141, 255, 0.5)), transparent 62%);
+  transition: background 800ms ease;
   animation: bd-drift-a 34s ease-in-out infinite alternate;
 }
 
@@ -138,7 +139,7 @@ p {
 .bd-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 100% 80% at 50% 45%, transparent 40%, rgba(2, 4, 8, 0.85) 100%);
+  background: radial-gradient(ellipse 100% 80% at 50% 45%, transparent 50%, rgba(4, 8, 16, 0.55) 100%);
 }
 
 @keyframes bd-drift-a {

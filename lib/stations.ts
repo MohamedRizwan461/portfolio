@@ -6,6 +6,8 @@ export type Station = {
   id: string;
   chip: string; // silkscreen part number
   title: string;
+  /** what fits on the board without colliding with neighbours */
+  short: string;
   year: string;
   x: number;
   z: number;
@@ -21,9 +23,10 @@ export const BUS_Z = 0;
 export const stations: Station[] = [
   {
     id: "biology",
-    chip: "BIO-01",
-    title: "It started with biology",
-    year: "Before 2019",
+    chip: "START",
+    title: "My journey",
+    short: "My journey",
+    year: "Where it began",
     x: -9,
     z: -4.2,
     group: "origin",
@@ -35,6 +38,7 @@ export const stations: Station[] = [
     id: "smart-knee-actuator",
     chip: "RP2040",
     title: "Smart Knee Actuator",
+    short: "Knee Actuator",
     year: "2022",
     x: -6,
     z: 4.2,
@@ -53,6 +57,7 @@ export const stations: Station[] = [
     id: "sign-language-eyewear",
     chip: "BCM2711",
     title: "Sign Language Eyewear",
+    short: "Sign Eyewear",
     year: "2023",
     x: -3,
     z: -4.2,
@@ -66,6 +71,7 @@ export const stations: Station[] = [
     id: "rfid-iot-attendance",
     chip: "ESP8266",
     title: "Wireless Sensor Network Platform",
+    short: "Sensor Network",
     year: "2023",
     x: 0,
     z: 4.2,
@@ -79,6 +85,7 @@ export const stations: Station[] = [
     id: "ev-boost-converter",
     chip: "ASMC-36V",
     title: "EV Boost Converter Control",
+    short: "EV Converter",
     year: "2023",
     x: 3,
     z: -4.2,
@@ -91,6 +98,7 @@ export const stations: Station[] = [
     id: "autonomous-mobile-robot",
     chip: "ATMEGA",
     title: "Autonomous Mobile Robot",
+    short: "Mobile Robot",
     year: "2024",
     x: 6,
     z: 4.2,
@@ -109,6 +117,7 @@ export const stations: Station[] = [
     id: "can-gear-controller",
     chip: "STM32F4",
     title: "CAN Gear Controller",
+    short: "CAN Controller",
     year: "2026",
     x: 9,
     z: -4.2,

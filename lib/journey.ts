@@ -27,7 +27,7 @@ export const chapters: Chapter[] = [
   {
     id: "biology",
     years: "Before engineering",
-    domain: "Biology",
+    domain: "My journey",
     title: "It started with biology",
     body: [
       "Before any of the engineering, the subject that held me was biology. How a body moves, what fails when it stops moving, and what it costs a person when it does.",
@@ -219,7 +219,7 @@ export const milestones: {
   note: string;
   thumb?: { src: string; alt: string };
 }[] = [
-  { id: "biology", label: "Biology", note: "How a body moves" },
+  { id: "biology", label: "My journey", note: "Where it began" },
   { id: "detour", label: "Electronics", note: "BE, Chennai" },
   {
     id: "assistive",

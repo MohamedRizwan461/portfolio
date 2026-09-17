@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { chapters, type ChapterMedia } from "@/lib/journey";
+import { markChapterRead } from "@/lib/progress";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -126,6 +127,11 @@ export function ChapterViewer() {
   }, [go, index]);
 
   const c = chapters[index];
+
+  // count this chapter as read for the "continue watching" bar on the board
+  useEffect(() => {
+    markChapterRead(chapters[index].id);
+  }, [index]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">

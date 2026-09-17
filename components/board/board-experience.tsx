@@ -4,34 +4,50 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
   CaretDown,
+  CursorClick,
   DownloadSimple,
-  EnvelopeSimple,
-  GithubLogo,
-  LinkedinLogo,
   ListBullets,
   PlayCircle,
+  SpeakerHigh,
+  SpeakerSlash,
   X,
 } from "@phosphor-icons/react/dist/ssr";
+import { cards, type Card } from "@/lib/cards";
 import { site } from "@/lib/content";
 import { MODE_STORAGE_KEY, modes, type ModeId } from "@/lib/modes";
-import { groupColor, groupLabel, stations, type Station } from "@/lib/stations";
+import { markStationSeen } from "@/lib/progress";
+import { setSoundEnabled, soundEnabled } from "@/lib/sound";
+import { stations } from "@/lib/stations";
 import { BootIntro } from "./boot-intro";
+import { RowDock } from "./row-dock";
+import { TitleModal } from "./title-modal";
 
 const BoardScene = dynamic(() => import("./board-scene"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center font-mono text-xs text-ink-2">
+    <div className="flex h-full items-center justify-center font-mono text-sm text-ink-2">
       <span className="animate-pulse">&gt; routing traces...</span>
     </div>
   ),
 });
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/** which card tells the story of which chip */
+const CARD_FOR_STATION: Record<string, string> = {
+  biology: "journey",
+  "smart-knee-actuator": "knee",
+  "sign-language-eyewear": "eyewear",
+  "rfid-iot-attendance": "wsn",
+  "ev-boost-converter": "asmc",
+  "autonomous-mobile-robot": "robot",
+  "can-gear-controller": "can",
+};
 
 function useCompact() {
   const [compact, setCompact] = useState(false);
@@ -45,6 +61,11 @@ function useCompact() {
   return compact;
 }
 
+function hexToRgba(hex: string, a: number) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
 /** A CAN rolling counter ticking in the corner, because every good bus has one. */
 function BusStatus() {
   const [n, setN] = useState(0);
@@ -55,12 +76,12 @@ function BusStatus() {
     return () => clearInterval(id);
   }, [reduce]);
   return (
-    <span className="num flex items-center gap-2 border border-rule bg-ground/60 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-ink-2 backdrop-blur">
-      <span className="relative flex h-1.5 w-1.5">
+    <span className="num hidden items-center gap-2 border border-rule bg-ground/60 px-3 py-1.5 font-mono text-xs tracking-wide text-ink-2 backdrop-blur md:flex">
+      <span className="relative flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-2 opacity-60 motion-reduce:hidden" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-2" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-2" />
       </span>
-      <span className="hidden sm:inline">BUS OK · 0x18F00500 ·</span> CNT {n.toString(16).toUpperCase()} · CRC OK
+      BUS OK · CNT {n.toString(16).toUpperCase()} · CRC OK
     </span>
   );
 }
@@ -71,80 +92,104 @@ export function BoardExperience() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [driveTo, setDriveTo] = useState<string | null>(null);
   const [active, setActive] = useState<string | null>(null);
-  const [panel, setPanel] = useState<string | null>(null);
   const [visited, setVisited] = useState<Set<string>>(() => new Set(["biology"]));
+  const [openCard, setOpenCard] = useState<Card | null>(null);
+  const [mode, setMode] = useState<ModeId | null>(null);
+  const [intro, setIntro] = useState<"gate" | "select" | null>(null);
+  const [sound, setSound] = useState(true);
+  const [hint, setHint] = useState(true);
+  const [seenTick, setSeenTick] = useState(0);
   const userDriven = useRef(false);
   const lastInput = useRef(0);
-  const autoIndex = useRef(-1);
+  const autoIndex = useRef(0);
   const parkedAt = useRef<string | null>("biology");
-  const [mode, setMode] = useState<ModeId | null>(null);
-  const [intro, setIntro] = useState<"boot" | "menu" | null>(null);
-  const modeConfig = modes.find((m) => m.id === mode) ?? null;
-  const route = modeConfig?.route ?? stations.map((s) => s.id);
 
-  // first visit boots up and asks who is here; returning visitors keep their mode
+  const modeConfig = modes.find((m) => m.id === mode) ?? modes[0];
+  const accent = modeConfig.accent;
+  const route = modeConfig.route;
+
+  // first visit powers on and asks who is operating; returning visitors keep their mode
   useEffect(() => {
     lastInput.current = Date.now();
+    setSound(soundEnabled());
     let saved: string | null = null;
     try {
       saved = window.localStorage.getItem(MODE_STORAGE_KEY);
     } catch {}
     const replay = new URLSearchParams(window.location.search).has("boot");
     if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
-    if (replay || !saved) setIntro("boot");
+    if (replay || !saved) setIntro("gate");
   }, []);
 
-  const pick = useCallback((id: string) => {
-    userDriven.current = true;
-    lastInput.current = Date.now();
-    setActive(id);
-    // already parked there: no trip needed, just open it
-    if (parkedAt.current === id) {
-      setPanel(id);
-      return;
-    }
-    setPanel(null);
-    parkedAt.current = null;
-    setDriveTo(id);
+  // the whole page, backdrop included, takes the operator's colour
+  useEffect(() => {
+    const root = document.documentElement.style;
+    root.setProperty("--accent", accent);
+    root.setProperty("--accent-soft", hexToRgba(accent, 0.14));
+    root.setProperty("--field-a", hexToRgba(accent, 0.55));
+    return () => {
+      root.removeProperty("--accent");
+      root.removeProperty("--accent-soft");
+      root.removeProperty("--field-a");
+    };
+  }, [accent]);
+
+  const openStation = useCallback((id: string) => {
+    const card = cards[CARD_FOR_STATION[id]];
+    if (card) setOpenCard(card);
   }, []);
 
-  const arrive = useCallback((id: string) => {
-    parkedAt.current = id;
-    setVisited((v) => new Set(v).add(id));
-    if (userDriven.current) setPanel(id);
-    else setActive(id);
-  }, []);
-
-  const selectMode = useCallback(
-    (id: ModeId) => {
-      const m = modes.find((x) => x.id === id)!;
-      setMode(id);
-      setIntro(null);
-      try {
-        window.localStorage.setItem(MODE_STORAGE_KEY, id);
-      } catch {}
-      autoIndex.current = 0;
-      if (m.openFirst) {
-        pick(m.route[0]);
-      } else {
-        // curious: hand the wheel to the autopilot right away
-        userDriven.current = false;
-        lastInput.current = 0;
-        setPanel(null);
-        parkedAt.current = null;
-        setActive(m.route[0]);
-        setDriveTo(m.route[0]);
+  const pick = useCallback(
+    (id: string) => {
+      userDriven.current = true;
+      lastInput.current = Date.now();
+      setHint(false);
+      setActive(id);
+      if (parkedAt.current === id) {
+        openStation(id);
+        return;
       }
+      parkedAt.current = null;
+      setDriveTo(id);
     },
-    [pick],
+    [openStation],
   );
 
-  // idle autopilot: the robot tours this visitor's route until someone takes the wheel
+  const arrive = useCallback(
+    (id: string) => {
+      parkedAt.current = id;
+      markStationSeen(id);
+      setSeenTick((t) => t + 1);
+      setVisited((v) => new Set(v).add(id));
+      if (userDriven.current) openStation(id);
+      else setActive(id);
+    },
+    [openStation],
+  );
+
+  const selectMode = useCallback((id: ModeId) => {
+    const m = modes.find((x) => x.id === id)!;
+    setMode(id);
+    setIntro(null);
+    setOpenCard(null);
+    try {
+      window.localStorage.setItem(MODE_STORAGE_KEY, id);
+    } catch {}
+    // send the robot to this operator's first stop; curious visitors get the tour straight away
+    autoIndex.current = 0;
+    userDriven.current = false;
+    lastInput.current = m.openFirst ? Date.now() : 0;
+    parkedAt.current = null;
+    setActive(m.route[0]);
+    setDriveTo(m.route[0]);
+  }, []);
+
+  // idle autopilot: tours this operator's route until someone takes the wheel
   useEffect(() => {
     if (reduce || intro) return;
     const id = setInterval(() => {
       const idle = Date.now() - lastInput.current;
-      if (panel || idle < 9000) return;
+      if (openCard || idle < 9000) return;
       userDriven.current = false;
       autoIndex.current = (autoIndex.current + 1) % route.length;
       const next = route[autoIndex.current];
@@ -153,31 +198,40 @@ export function BoardExperience() {
       setDriveTo(next);
     }, 4200);
     return () => clearInterval(id);
-  }, [panel, reduce, intro, route]);
+  }, [openCard, reduce, intro, route]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (intro) return;
-      if (e.key === "Escape") {
-        setPanel(null);
-        return;
-      }
+      if (intro || openCard) return;
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       e.preventDefault();
       const current = stations.findIndex((s) => s.id === (active ?? "biology"));
       const next = (current + (e.key === "ArrowRight" ? 1 : -1) + stations.length) % stations.length;
-      autoIndex.current = next;
       pick(stations[next].id);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active, pick, intro]);
+  }, [active, pick, intro, openCard]);
 
-  const panelStation = stations.find((s) => s.id === panel) ?? null;
-  const dimmed = new Set(
-    modeConfig && modeConfig.highlight.length ? stations.filter((s) => !modeConfig.highlight.includes(s.id)).map((s) => s.id) : [],
+  const openFromRow = useCallback((card: Card) => {
+    lastInput.current = Date.now();
+    setHint(false);
+    setOpenCard(card);
+    // the robot goes to the chip the visitor is reading about
+    if (card.station && parkedAt.current !== card.station) {
+      userDriven.current = false;
+      parkedAt.current = null;
+      setActive(card.station);
+      setDriveTo(card.station);
+    }
+  }, []);
+
+  const dimmed = useMemo(
+    () => new Set(modeConfig.highlight.length ? stations.filter((s) => !modeConfig.highlight.includes(s.id)).map((s) => s.id) : []),
+    [modeConfig],
   );
-  const groups = Object.keys(groupLabel) as Station["group"][];
+
+  const btn = "ease flex items-center gap-2 border border-rule bg-ground/70 px-3.5 py-2 text-sm text-ink no-underline backdrop-blur hover:border-accent hover:text-accent";
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
@@ -192,14 +246,23 @@ export function BoardExperience() {
           />
         )}
       </AnimatePresence>
-      {/* the board */}
-      <div className="absolute inset-0 isolate z-0" onPointerDown={() => (lastInput.current = Date.now())}>
+
+      {/* the board, framed to the right of the hero on wide screens */}
+      <div
+        className="absolute inset-x-0 top-[31%] bottom-[35%] isolate z-0 sm:top-[34%] lg:top-[9%] lg:bottom-[30%] lg:left-[33%]"
+        onPointerDown={() => {
+          lastInput.current = Date.now();
+          setHint(false);
+        }}
+      >
         <BoardScene
           driveTo={driveTo}
           hovered={hovered}
           active={active}
           visited={visited}
           dimmed={dimmed}
+          accent={accent}
+          accessory={modeConfig.accessory}
           reduce={reduce}
           compact={compact}
           onHover={setHovered}
@@ -208,127 +271,169 @@ export function BoardExperience() {
         />
       </div>
 
+      {/* netflix-style vignettes so words stay readable over the board */}
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-[48%] bg-gradient-to-r from-[#0c1422] via-[#0c1422]/85 to-transparent lg:block" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[42%] bg-gradient-to-t from-[#0c1422] via-[#0c1422]/80 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#0c1422]/90 to-transparent" />
+
       {/* top bar */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3 sm:p-5">
-        <div className="pointer-events-auto flex flex-col gap-2">
+      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center gap-3">
           <Link href="/" className="flex items-baseline gap-2 no-underline">
-            <span className="font-mono text-sm font-semibold tracking-tight">RIZ</span>
-            <span className="text-sm text-ink-2">Mohamed Rizwan</span>
+            <span className="font-mono text-base font-bold tracking-tight" style={{ color: accent }}>
+              RIZ
+            </span>
+            <span className="hidden text-base text-ink sm:inline">Mohamed Rizwan</span>
           </Link>
           <BusStatus />
-          {modeConfig && (
+          {mode && (
             <button
               type="button"
-              onClick={() => setIntro("menu")}
-              className="ease flex w-fit items-center gap-1.5 border border-rule bg-ground/60 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-ink-2 backdrop-blur hover:border-accent hover:text-accent"
+              onClick={() => setIntro("select")}
+              className="ease flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs tracking-wide text-ink backdrop-blur hover:bg-white/5"
+              style={{ borderColor: accent }}
             >
-              MODE <span className="text-accent-2">{modeConfig.label.toUpperCase()}</span>
-              <CaretDown size={10} aria-hidden />
+              <span className="hidden sm:inline text-ink-2">MODE</span>
+              <span style={{ color: accent }}>{modeConfig.label.toUpperCase()}</span>
+              <CaretDown size={12} aria-hidden />
             </button>
           )}
         </div>
-        <nav aria-label="Primary" className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5">
-          <Link
-            href="/tour"
-            className="ease hidden items-center gap-1.5 border border-rule bg-ground/60 px-3 py-1.5 text-xs text-ink no-underline backdrop-blur hover:border-accent hover:text-accent sm:flex"
-          >
-            <PlayCircle size={14} aria-hidden /> Guided tour
+        <nav aria-label="Primary" className="flex items-center gap-2">
+          <Link href="/tour" className={`${btn} hidden lg:flex`}>
+            <PlayCircle size={16} aria-hidden /> Guided tour
           </Link>
-          <Link
-            href="/projects"
-            className="ease flex items-center gap-1.5 border border-rule bg-ground/60 px-3 py-1.5 text-xs text-ink no-underline backdrop-blur hover:border-accent hover:text-accent"
-          >
-            <ListBullets size={14} aria-hidden /> <span className="hidden sm:inline">All projects</span>
-            <span className="sm:hidden">List</span>
+          <Link href="/about" className={`${btn} hidden lg:flex`}>
+            About
           </Link>
+          <Link href="/projects" className={`${btn} hidden sm:flex`}>
+            <ListBullets size={16} aria-hidden /> All projects
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              setSoundEnabled(next);
+            }}
+            aria-label={sound ? "Mute sound" : "Turn sound on"}
+            className={`${btn} px-2.5`}
+          >
+            {sound ? <SpeakerHigh size={16} aria-hidden /> : <SpeakerSlash size={16} aria-hidden />}
+          </button>
           <a
             href={site.resumePdf}
             download
-            className={`ease relative flex items-center gap-1.5 border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink no-underline hover:border-accent-2 hover:bg-accent-2 ${
-              modeConfig?.glowResume ? "shadow-[0_0_0_0_rgba(77,141,255,0.7)] motion-safe:animate-[resume-glow_2.2s_ease-out_infinite]" : ""
+            className={`ease flex items-center gap-2 border px-3.5 py-2 text-sm font-semibold text-[#05080d] no-underline hover:brightness-110 ${
+              mode === "recruiter" ? "motion-safe:animate-[resume-glow_2.2s_ease-out_infinite]" : ""
             }`}
+            style={{ background: accent, borderColor: accent }}
           >
-            <DownloadSimple size={14} aria-hidden /> Resume
+            <DownloadSimple size={16} weight="bold" aria-hidden /> Resume
           </a>
         </nav>
       </header>
 
-      {/* identity card */}
-      <motion.aside
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        animate={compact && panel ? { opacity: 0, y: 16 } : { opacity: 1, y: 0 }}
-        transition={{ duration: compact && panel ? 0.25 : 0.7, delay: compact && panel ? 0 : 0.3, ease: EASE }}
-        aria-hidden={compact && !!panel}
-        className="panel absolute bottom-3 left-3 z-30 w-[calc(100%-1.5rem)] max-w-sm p-4 sm:bottom-5 sm:left-5 sm:p-5"
-      >
-        <div className="flex items-center gap-4">
-          <div className="relative h-16 w-16 shrink-0 sm:h-20 sm:w-20">
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full border border-accent-2/60 motion-safe:animate-[spin_9s_linear_infinite] [border-style:dashed]"
-            />
-            <span aria-hidden className="absolute inset-1.5 rounded-full bg-[radial-gradient(circle,rgba(77,141,255,0.45),transparent_70%)]" />
-            <Image
-              src="/images/riz/headshot-cut.png"
-              width={820}
-              height={900}
-              alt="Mohamed Rizwan Ameer John"
-              priority
-              sizes="80px"
-              className="absolute inset-1 h-[calc(100%-0.5rem)] w-[calc(100%-0.5rem)] rounded-full object-cover object-top"
-            />
+      {/* hero: changes with the operator */}
+      <AnimatePresence mode="wait">
+        <motion.section
+          key={modeConfig.id}
+          initial={reduce ? false : { opacity: 0, x: -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="pointer-events-none absolute top-[4.5rem] left-4 z-20 max-w-[22rem] sm:top-24 sm:left-6 sm:max-w-md lg:top-[20%] lg:left-10 lg:max-w-[30rem] [@media(max-height:860px)]:lg:top-[17%]"
+        >
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase sm:text-sm" style={{ color: accent }}>
+            {modeConfig.kicker}
+          </p>
+          <h1 className="mt-2 text-[1.6rem] leading-[1.08] font-semibold tracking-[-0.02em] sm:text-4xl lg:text-5xl">
+            {modeConfig.headline}
+          </h1>
+          <p className="mt-3 hidden max-w-[42ch] text-base leading-relaxed text-ink sm:block lg:text-lg">{modeConfig.sub}</p>
+          <div className="pointer-events-auto mt-4 flex flex-wrap gap-2.5 sm:mt-6">
+            {modeConfig.primary.download || modeConfig.primary.external ? (
+              <a
+                href={modeConfig.primary.href}
+                {...(modeConfig.primary.download ? { download: true } : { target: "_blank", rel: "noopener" })}
+                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white sm:px-5 sm:text-base"
+              >
+                {modeConfig.primary.download ? <DownloadSimple size={18} weight="bold" /> : <ArrowUpRight size={18} weight="bold" />}
+                {modeConfig.primary.label}
+              </a>
+            ) : (
+              <Link
+                href={modeConfig.primary.href}
+                className="ease flex items-center gap-2 bg-ink px-4 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white sm:px-5 sm:text-base"
+              >
+                <PlayCircle size={18} weight="fill" /> {modeConfig.primary.label}
+              </Link>
+            )}
+            {modeConfig.secondary.external ? (
+              <a
+                href={modeConfig.secondary.href}
+                target="_blank"
+                rel="noopener"
+                className="ease flex items-center gap-2 bg-white/15 px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-white/25 sm:px-5 sm:text-base"
+              >
+                {modeConfig.secondary.label} <ArrowUpRight size={16} weight="bold" />
+              </a>
+            ) : (
+              <Link
+                href={modeConfig.secondary.href}
+                className="ease flex items-center gap-2 bg-white/15 px-4 py-2.5 text-sm font-semibold text-ink no-underline backdrop-blur hover:bg-white/25 sm:px-5 sm:text-base"
+              >
+                {modeConfig.secondary.label} <ArrowRight size={16} weight="bold" />
+              </Link>
+            )}
           </div>
-          <div className="min-w-0">
-            <h1 className="text-lg leading-tight font-semibold tracking-tight sm:text-xl">
-              Mohamed Rizwan Ameer John
-            </h1>
-            <p className="mt-1 text-xs text-ink-2 sm:text-sm">Robotics and embedded systems engineer</p>
-          </div>
-        </div>
-        <p className="mt-3 hidden text-sm text-ink-2 sm:block">
-          This board is my career. Time runs left to right along the bus, every chip is something I built, and the
-          little robot is the one I taught to drive.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a
-            href={`mailto:${site.email}`}
-            className="ease flex items-center gap-1.5 border border-rule px-3 py-1.5 text-xs text-ink no-underline hover:border-accent hover:text-accent"
-          >
-            <EnvelopeSimple size={14} aria-hidden /> Email
-          </a>
-          <a
-            href={site.linkedin}
-            target="_blank"
-            rel="noopener"
-            className="ease flex items-center gap-1.5 border border-rule px-3 py-1.5 text-xs text-ink no-underline hover:border-accent hover:text-accent"
-          >
-            <LinkedinLogo size={14} aria-hidden /> LinkedIn
-          </a>
-          <a
-            href={site.github}
-            target="_blank"
-            rel="noopener"
-            className="ease flex items-center gap-1.5 border border-rule px-3 py-1.5 text-xs text-ink no-underline hover:border-accent hover:text-accent"
-          >
-            <GithubLogo size={14} aria-hidden /> GitHub
-          </a>
-        </div>
-      </motion.aside>
 
-      {/* legend and controls hint */}
-      <div className="pointer-events-none absolute right-5 bottom-5 z-20 hidden flex-col items-end gap-3 lg:flex">
-        <ul className="panel pointer-events-auto flex flex-col gap-1.5 px-3 py-2.5 font-mono text-[0.65rem] text-ink-2">
-          {groups.map((g) => (
-            <li key={g} className="flex items-center gap-2">
-              <span className="h-2 w-2" style={{ background: groupColor[g] }} />
-              {groupLabel[g]}
-            </li>
-          ))}
-        </ul>
-        <p className="font-mono text-[0.65rem] tracking-wider text-ink-2">CLICK A CHIP · ← → DRIVE · DRAG TO LOOK</p>
+          <div className="mt-6 hidden items-center gap-3 lg:flex [@media(max-height:860px)]:!hidden">
+            <span className="relative h-14 w-14 shrink-0">
+              <span aria-hidden className="absolute inset-0 rounded-full border-2 border-dashed motion-safe:animate-[spin_9s_linear_infinite]" style={{ borderColor: accent }} />
+              <Image
+                src="/images/riz/headshot-cut.png"
+                width={820}
+                height={900}
+                alt=""
+                sizes="56px"
+                className="absolute inset-1 h-[calc(100%-0.5rem)] w-[calc(100%-0.5rem)] rounded-full object-cover object-top"
+              />
+            </span>
+            <span>
+              <span className="block text-lg font-semibold">Mohamed Rizwan Ameer John</span>
+              <span className="block text-sm text-ink-2">Chicago · open to relocation</span>
+            </span>
+          </div>
+        </motion.section>
+      </AnimatePresence>
+
+      {/* how to play, in words people can actually read */}
+      <AnimatePresence>
+        {hint && !intro && (
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, delay: reduce ? 0 : 1 }}
+            className="absolute top-[4.25rem] left-10 z-20 hidden items-center gap-3 border bg-[#0c1422]/90 px-3.5 py-2 text-[0.95rem] text-ink backdrop-blur lg:flex"
+            style={{ borderColor: accent }}
+          >
+            <CursorClick size={20} weight="duotone" style={{ color: accent }} aria-hidden />
+            Click any chip and the robot drives there. Drag to look around.
+            <button type="button" onClick={() => setHint(false)} aria-label="Dismiss hint" className="text-ink-2 hover:text-ink">
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* the row */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-5">
+        <RowDock key={modeConfig.id} title={modeConfig.rowTitle} ids={modeConfig.cards} accent={accent} seenTick={seenTick} onOpen={openFromRow} />
       </div>
 
-      {/* station list for keyboard and screen reader users */}
+      {/* keyboard and screen reader access to every chip */}
       <nav aria-label="Projects on the board" className="sr-only">
         <ul>
           {stations.map((s) => (
@@ -341,98 +446,7 @@ export function BoardExperience() {
         </ul>
       </nav>
 
-      {/* project panel, opens when the robot arrives */}
-      <AnimatePresence>
-        {panelStation && (
-          <motion.aside
-            key={panelStation.id}
-            role="dialog"
-            aria-label={panelStation.title}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, x: compact ? 0 : 40, y: compact ? 40 : 0 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, x: compact ? 0 : 40, y: compact ? 40 : 0 }}
-            transition={{ duration: 0.45, ease: EASE }}
-            className="panel absolute z-50 flex max-h-[72dvh] flex-col overflow-y-auto max-md:inset-x-3 max-md:bottom-3 max-md:!bg-[#080c13] md:top-24 md:right-5 md:w-[24rem] md:bg-[#080c13]/90"
-          >
-            <div className="flex items-start justify-between gap-3 border-b border-rule p-4">
-              <div>
-                <p className="num font-mono text-[0.65rem] tracking-wider" style={{ color: groupColor[panelStation.group] }}>
-                  {panelStation.chip} · {groupLabel[panelStation.group].toUpperCase()} · {panelStation.year}
-                </p>
-                <h2 className="mt-1 text-xl leading-tight font-semibold tracking-tight">{panelStation.title}</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPanel(null)}
-                aria-label="Close"
-                className="ease flex h-8 w-8 shrink-0 items-center justify-center border border-rule text-ink-2 hover:border-accent hover:text-accent"
-              >
-                <X size={14} aria-hidden />
-              </button>
-            </div>
-
-            {panelStation.media && (
-              <div className="border-b border-rule bg-black">
-                {panelStation.media.kind === "video" ? (
-                  <video
-                    src={panelStation.media.src}
-                    poster={panelStation.media.poster}
-                    aria-label={panelStation.media.alt}
-                    autoPlay={!reduce}
-                    muted
-                    loop
-                    playsInline
-                    className="block max-h-56 w-full object-cover"
-                  />
-                ) : (
-                  <Image
-                    src={panelStation.media.src}
-                    alt={panelStation.media.alt}
-                    width={800}
-                    height={450}
-                    sizes="384px"
-                    className="block max-h-56 w-full object-cover"
-                  />
-                )}
-              </div>
-            )}
-
-            <div className="p-4">
-              <p className="text-sm text-ink-2">{panelStation.blurb}</p>
-              <ul className="mt-4 flex flex-wrap gap-1.5">
-                {panelStation.stack.map((t) => (
-                  <li key={t} className="border border-rule px-2 py-0.5 font-mono text-[0.65rem] text-ink-2">
-                    {t}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={panelStation.href}
-                className="ease group mt-5 inline-flex items-center gap-2 border border-accent bg-accent px-4 py-2 text-sm font-medium text-accent-ink no-underline hover:border-accent-2 hover:bg-accent-2"
-              >
-                {panelStation.group === "origin" ? "Read the story" : "Open case study"}
-                <ArrowRight size={14} weight="bold" aria-hidden className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* hover tooltip for the chip under the cursor */}
-      <AnimatePresence>
-        {hovered && !panel && (
-          <motion.p
-            key={hovered}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="pointer-events-none absolute top-24 left-1/2 z-30 hidden -translate-x-1/2 items-center gap-2 border border-rule bg-ground/80 px-3 py-1.5 font-mono text-[0.7rem] text-ink backdrop-blur md:flex"
-          >
-            Click to drive the robot to {stations.find((s) => s.id === hovered)?.title}
-            <ArrowUpRight size={12} aria-hidden />
-          </motion.p>
-        )}
-      </AnimatePresence>
+      <TitleModal card={openCard} accent={accent} onClose={() => setOpenCard(null)} />
     </div>
   );
 }

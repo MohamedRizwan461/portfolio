@@ -5,9 +5,10 @@ import { Html, OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { BUS_Z, groupColor, stations, type Station } from "@/lib/stations";
+import { RobotModel, type Accessory } from "./robot-model";
 
 const COPPER = "#c7a25c";
-const MASK = "#0b1a1f";
+const MASK = "#16414a";
 const BOARD_W = 24;
 const BOARD_D = 13;
 
@@ -17,6 +18,8 @@ export type SceneProps = {
   active: string | null;
   visited: Set<string>;
   dimmed: Set<string>;
+  accent: string;
+  accessory: Accessory;
   reduce: boolean;
   compact: boolean;
   onHover: (id: string | null) => void;
@@ -109,7 +112,7 @@ function Board() {
       {/* board edge highlight */}
       <mesh position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[BOARD_W - 0.3, BOARD_D - 0.3]} />
-        <meshBasicMaterial color="#0f2429" transparent opacity={0.55} />
+        <meshBasicMaterial color="#1c4d57" transparent opacity={0.55} />
       </mesh>
 
       {/* mounting holes */}
@@ -203,7 +206,7 @@ function Pulse({
   );
 }
 
-function Signals({ reduce }: { reduce: boolean }) {
+function Signals({ reduce, accent }: { reduce: boolean; accent: string }) {
   const busA = useMemo(
     () => [
       new THREE.Vector3(-10.8, 0.08, BUS_Z - 0.18),
@@ -238,7 +241,7 @@ function Signals({ reduce }: { reduce: boolean }) {
           path={busA}
           speed={0.09}
           offset={o}
-          color="#4d8dff"
+          color={accent}
           reduce={reduce}
         />
       ))}
@@ -382,7 +385,7 @@ function Chip({
           style={{ pointerEvents: "none" }}
         >
           <div className="flex flex-col items-center whitespace-nowrap select-none">
-            <span className="font-mono text-[11px] font-semibold tracking-wider text-white/90">
+            <span className={`font-mono font-bold tracking-wider text-white ${compact ? "text-[11px]" : "text-[15px]"}`}>
               {station.chip}
             </span>
           </div>
@@ -393,19 +396,19 @@ function Chip({
       {!compact && (
         <Html
           center
-          position={[0, 0.05, Math.sign(station.z) * 1.55]}
+          position={[0, 0.05, Math.sign(station.z) * 2.0]}
           distanceFactor={compact ? 16 : 11}
           zIndexRange={[10, 0]}
           style={{ pointerEvents: "none" }}
         >
           <div
             className={`whitespace-nowrap text-center font-sans transition-all duration-300 select-none ${lit ? "scale-110" : ""}`}
-            style={{ color: lit ? color : dim ? "rgba(238,242,246,0.3)" : "rgba(238,242,246,0.8)" }}
+            style={{ color: lit ? color : dim ? "rgba(238,242,246,0.35)" : "#f2f6fa" }}
           >
-            <div className="text-[13px] font-semibold tracking-tight">
-              {station.title}
+            <div className="text-[19px] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+              {station.short}
             </div>
-            <div className="font-mono text-[10px] opacity-70">
+            <div className="font-mono text-[13px] opacity-80">
               {station.year}
             </div>
           </div>
@@ -420,10 +423,14 @@ function Chip({
 function Robot({
   driveTo,
   reduce,
+  plate,
+  accessory,
   onArrive,
 }: {
   driveTo: string | null;
   reduce: boolean;
+  plate: string;
+  accessory: Accessory;
   onArrive: (id: string) => void;
 }) {
   const group = useRef<THREE.Group>(null);
@@ -494,71 +501,17 @@ function Robot({
     }
   });
 
-  const wheelPos: [number, number, number][] = [
-    [-0.42, 0.14, 0.3],
-    [0.42, 0.14, 0.3],
-    [-0.42, 0.14, -0.3],
-    [0.42, 0.14, -0.3],
-  ];
-
   return (
     <group ref={group}>
-      {/* chassis */}
-      <mesh position={[0, 0.26, 0]}>
-        <boxGeometry args={[0.66, 0.14, 0.95]} />
-        <meshStandardMaterial color="#1c222b" roughness={0.5} metalness={0.3} />
-      </mesh>
-      {/* top plate with the battery pack */}
-      <mesh position={[0, 0.39, -0.05]}>
-        <boxGeometry args={[0.5, 0.1, 0.55]} />
-        <meshStandardMaterial color="#e25b2c" roughness={0.6} />
-      </mesh>
-      {/* ultrasonic eyes */}
-      {[-0.13, 0.13].map((x) => (
-        <mesh key={x} position={[x, 0.32, 0.5]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.075, 0.075, 0.08, 20]} />
-          <meshStandardMaterial
-            color="#cfd6de"
-            metalness={0.8}
-            roughness={0.2}
-          />
-        </mesh>
-      ))}
-      {/* status led */}
-      <mesh position={[0.2, 0.46, -0.25]}>
-        <sphereGeometry args={[0.035, 10, 10]} />
-        <meshBasicMaterial color="#27e0c4" toneMapped={false} />
-      </mesh>
-      {/* yellow wheels, like the real one */}
-      {wheelPos.map((p, i) => (
-        <mesh
-          key={i}
-          position={p}
-          rotation={[0, 0, Math.PI / 2]}
-          ref={(m) => {
-            if (m) wheels.current[i] = m;
-          }}
-        >
-          <cylinderGeometry args={[0.14, 0.14, 0.12, 18]} />
-          <meshStandardMaterial color="#f2c230" roughness={0.6} />
-        </mesh>
-      ))}
-      {/* ultrasonic field of view */}
-      <mesh
-        ref={cone}
-        position={[0, 0.2, 1.35]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <coneGeometry args={[0.75, 1.7, 32, 1, true]} />
-        <meshBasicMaterial
-          color="#27e0c4"
-          transparent
-          opacity={0.16}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </mesh>
+      <RobotModel
+        plate={plate}
+        accessory={accessory}
+        coneColor={plate}
+        coneRef={cone}
+        wheelRef={(i, m) => {
+          if (m) wheels.current[i] = m;
+        }}
+      />
     </group>
   );
 }
@@ -575,35 +528,23 @@ export default function BoardScene(props: SceneProps) {
       dpr={[1, 1.75]}
       gl={{ antialias: true, alpha: true }}
       camera={{
-        position: compact ? [0, 34, 17] : [0, 19, 18.5],
-        fov: compact ? 46 : 40,
+        position: compact ? [0, 20, 9] : [0, 15.5, 11.5],
+        fov: compact ? 42 : 38,
       }}
       onCreated={() => setReady(true)}
       onPointerMissed={() => props.onHover(null)}
     >
-      <fog
-        attach="fog"
-        args={["#06090e", compact ? 36 : 28, compact ? 70 : 52]}
-      />
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[6, 14, 8]} intensity={1.3} />
-      <pointLight
-        position={[-8, 6, -4]}
-        intensity={18}
-        color="#4d8dff"
-        distance={22}
-      />
-      <pointLight
-        position={[8, 6, 5]}
-        intensity={14}
-        color="#27e0c4"
-        distance={22}
-      />
+      <fog attach="fog" args={["#0c1422", compact ? 40 : 34, compact ? 80 : 64]} />
+      <ambientLight intensity={1.05} />
+      <directionalLight position={[6, 14, 8]} intensity={2.1} />
+      <hemisphereLight args={["#cfe0ff", "#0c1422", 0.55]} />
+      <pointLight position={[-8, 6, -4]} intensity={30} color={props.accent} distance={26} />
+      <pointLight position={[8, 6, 5]} intensity={18} color="#27e0c4" distance={24} />
 
       {/* portrait screens get the board turned so time runs top to bottom */}
-      <group rotation={[0, compact ? -Math.PI / 2 : 0, 0]}>
+      <group>
         <Board />
-        <Signals reduce={props.reduce} />
+        <Signals reduce={props.reduce} accent={props.accent} />
         {stations.map((s) => (
           <Chip
             key={s.id}
@@ -620,6 +561,8 @@ export default function BoardScene(props: SceneProps) {
         <Robot
           driveTo={props.driveTo}
           reduce={props.reduce}
+          plate={props.accent}
+          accessory={props.accessory}
           onArrive={props.onArrive}
         />
       </group>
@@ -628,13 +571,13 @@ export default function BoardScene(props: SceneProps) {
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
-        minDistance={compact ? 24 : 14}
-        maxDistance={compact ? 56 : 36}
+        minDistance={compact ? 14 : 11}
+        maxDistance={compact ? 40 : 34}
         minPolarAngle={0.35}
         maxPolarAngle={1.12}
         minAzimuthAngle={-0.7}
         maxAzimuthAngle={0.7}
-        target={compact ? [0, 0, 3.2] : [0, 0, 2.2]}
+        target={[0, 0, 0.6]}
       />
     </Canvas>
   );

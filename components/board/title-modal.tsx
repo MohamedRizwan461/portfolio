@@ -1,0 +1,125 @@
+"use client";
+
+import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef } from "react";
+import { ArrowRight, ArrowUpRight, DownloadSimple, X } from "@phosphor-icons/react/dist/ssr";
+import type { Card } from "@/lib/cards";
+import { CardThumb } from "./card-thumb";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+/** The Netflix title window: big media header, badges, the story, then "episodes". */
+export function TitleModal({ card, accent, onClose }: { card: Card | null; accent: string; onClose: () => void }) {
+  const reduce = useReducedMotion();
+  const closeBtn = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!card) return;
+    closeBtn.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [card, onClose]);
+
+  const ctaClass =
+    "ease inline-flex items-center gap-2 bg-ink px-5 py-2.5 text-sm font-semibold text-[#05080d] no-underline hover:bg-white";
+
+  return (
+    <AnimatePresence>
+      {card && (
+        <motion.div
+          key={card.id}
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduce ? 0 : 0.25 }}
+          onClick={onClose}
+        >
+          <motion.article
+            role="dialog"
+            aria-modal="true"
+            aria-label={card.title}
+            onClick={(e) => e.stopPropagation()}
+            initial={reduce ? false : { opacity: 0, y: 40, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.97 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-white/10 bg-[#0b111b] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)]"
+          >
+            <button
+              ref={closeBtn}
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#0b111b]/80 text-ink hover:bg-black"
+            >
+              <X size={16} weight="bold" />
+            </button>
+
+            {/* header media */}
+            <div className="relative aspect-video w-full overflow-hidden bg-black">
+              <CardThumb thumb={card.thumb} playing={!reduce} large accent={accent} />
+              <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0b111b] via-[#0b111b]/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+                <h2 className="text-2xl leading-tight font-semibold tracking-tight sm:text-4xl">{card.title}</h2>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {card.cta.external || card.cta.download ? (
+                    <a
+                      href={card.cta.href}
+                      {...(card.cta.download ? { download: true } : { target: "_blank", rel: "noopener" })}
+                      className={ctaClass}
+                    >
+                      {card.cta.download ? <DownloadSimple size={16} weight="bold" /> : <ArrowUpRight size={16} weight="bold" />}
+                      {card.cta.label}
+                    </a>
+                  ) : (
+                    <Link href={card.cta.href} className={ctaClass}>
+                      {card.cta.label} <ArrowRight size={16} weight="bold" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 p-5 sm:grid-cols-[1fr_12rem] sm:p-7">
+              <div>
+                <p className="flex flex-wrap items-center gap-2 text-sm">
+                  {card.badges.map((b) => (
+                    <span key={b} className="px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold text-[#05080d] uppercase" style={{ background: accent }}>
+                      {b}
+                    </span>
+                  ))}
+                  <span className="text-ink-2">{card.meta}</span>
+                </p>
+                <p className="mt-4 text-base leading-relaxed text-ink sm:text-lg">{card.blurb}</p>
+              </div>
+              <div className="text-sm text-ink-2 sm:border-l sm:border-rule sm:pl-5">
+                <p className="text-xs tracking-wide uppercase">Riz</p>
+                <p className="mt-1 text-ink">Robotics and embedded systems engineer</p>
+              </div>
+            </div>
+
+            {card.episodes && (
+              <div className="border-t border-rule px-5 pt-5 pb-7 sm:px-7">
+                <h3 className="text-lg font-semibold tracking-tight">Episodes</h3>
+                <ol className="mt-3 divide-y divide-rule">
+                  {card.episodes.map((ep, i) => (
+                    <li key={ep.title} className="grid grid-cols-[2.5rem_1fr] gap-3 py-4">
+                      <span className="text-2xl font-semibold text-ink-2 tabular-nums">{i + 1}</span>
+                      <div>
+                        <p className="font-semibold text-ink">{ep.title}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-ink-2">{ep.text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </motion.article>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
