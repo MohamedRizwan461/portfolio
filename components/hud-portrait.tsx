@@ -45,9 +45,9 @@ export function HudPortrait() {
       <div className="relative overflow-hidden border border-rule bg-[#070b12]">
         {/* subject */}
         <Image
-          src="/images/riz/headshot-cut.png"
-          width={820}
-          height={900}
+          src="/images/riz/portrait-cut.png"
+          width={900}
+          height={813}
           alt="Mohamed Rizwan Ameer John"
           priority
           sizes="(min-width: 1024px) 340px, 60vw"

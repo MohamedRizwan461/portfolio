@@ -16,13 +16,14 @@ type Props = {
   speed: number;
   counter: number;
   state: "ok" | "scrambled" | "unplugged";
+  wreck?: "none" | "cut" | "crunch";
 };
 
 /**
  * Why a car uses CAN, in one picture. Without it every controller is wired to
  * every other; with it they share two wires and every message is checked.
  */
-export function BusDiagram({ withBus, gear, speed, counter, state }: Props) {
+export function BusDiagram({ withBus, gear, speed, counter, state, wreck = "none" }: Props) {
   const reduce = useReducedMotion() ?? false;
   const TOP = 36;
   const BOX_W = 92;
@@ -75,25 +76,47 @@ export function BusDiagram({ withBus, gear, speed, counter, state }: Props) {
             </AnimatePresence>
           </>
         ) : (
-          pairs.map(([a, b], i) => {
-            const xa = NODES[a].x;
-            const xb = NODES[b].x;
-            const dip = 40 + ((i * 17) % 60);
-            return (
-              <path key={`${a}${b}`} d={`M${xa} ${TOP + BOX_H} C${xa} ${TOP + BOX_H + dip} ${xb} ${TOP + BOX_H + dip} ${xb} ${TOP + BOX_H}`}
-                fill="none" stroke={["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7"][i % 5]} strokeWidth="2.5" opacity="0.8" />
-            );
-          })
+          <>
+            {pairs.map(([a, b], i) => {
+              const xa = NODES[a].x;
+              const xb = NODES[b].x;
+              const dip = 40 + ((i * 17) % 60);
+              // the shift ECU to gearbox wire is the one that snaps
+              const snapped = wreck !== "none" && a === 1 && b === 2;
+              return (
+                <path key={`${a}${b}`} d={`M${xa} ${TOP + BOX_H} C${xa} ${TOP + BOX_H + dip} ${xb} ${TOP + BOX_H + dip} ${xb} ${TOP + BOX_H}`}
+                  fill="none" stroke={snapped ? "#ef4444" : ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7"][i % 5]}
+                  strokeWidth={snapped ? 4 : 2.5} opacity={snapped ? 1 : 0.8}
+                  strokeDasharray={snapped ? "40 14 200" : undefined} />
+              );
+            })}
+            {wreck !== "none" && (
+              <g transform="translate(240 118)">
+                {Array.from({ length: 14 }, (_, i) => (
+                  <motion.line key={i} x1="0" y1="0" stroke={i % 2 ? "#ffd166" : "#ff7a1a"} strokeWidth="2.5" strokeLinecap="round"
+                    initial={{ x2: 0, y2: 0, opacity: 1 }}
+                    animate={reduce ? { opacity: 0.8 } : { x2: Math.cos(i * 0.45) * (18 + (i % 4) * 7), y2: Math.sin(i * 0.45) * (18 + (i % 3) * 8), opacity: [1, 1, 0] }}
+                    transition={{ duration: 0.5, repeat: wreck === "cut" && !reduce ? Infinity : 0, repeatDelay: 0.15, delay: i * 0.02 }} />
+                ))}
+                <text x="0" y="-18" textAnchor="middle" fontSize="12" fontWeight="800" fill="#ef4444">SNAP</text>
+              </g>
+            )}
+          </>
         )}
 
         {NODES.map((n) => {
           const isGearbox = n.id === "gearbox";
-          const alarm = withBus && isGearbox && bad;
+          const alarm = (withBus && isGearbox && bad) || (!withBus && isGearbox && wreck === "crunch");
           return (
             <g key={n.id}>
               <rect x={n.x - BOX_W / 2} y={TOP} width={BOX_W} height={BOX_H} rx="6"
                 fill="var(--surface)" stroke={alarm ? "#ef4444" : n.id === "shift" && withBus ? "var(--accent)" : "var(--rule-strong)"} strokeWidth={alarm ? 3 : 2} />
               <text x={n.x} y={TOP + 26} textAnchor="middle" fontSize="13" fontWeight="600" fill="var(--ink)">{n.label}</text>
+              {!withBus && isGearbox && wreck !== "none" && (
+                <text x={n.x} y={TOP - 8} textAnchor="middle" fontSize="11" fontFamily="monospace" fill="#ef4444">
+                  {wreck === "cut" ? "still using old data..." : "DESTROYED"}
+                </text>
+              )}
               {withBus && isGearbox && (
                 <text x={n.x} y={TOP - 8} textAnchor="middle" fontSize="11" fontFamily="monospace" fill={alarm ? "#ef4444" : "#22c55e"}>
                   {state === "unplugged" ? "TIMEOUT · fail-safe" : state === "scrambled" ? "checksum bad · ignored" : "received · checksum OK"}

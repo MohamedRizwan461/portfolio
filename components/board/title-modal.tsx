@@ -47,7 +47,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.4, ease: EASE }}
-            className="relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-rule bg-[var(--surface)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)]"
+            className={`relative max-h-[94dvh] w-full overflow-y-auto border border-rule ${card.interactive ? "max-w-[min(96vw,78rem)]" : "max-w-3xl"} bg-[var(--surface)] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)]`}
           >
             <button
               ref={closeBtn}
@@ -60,11 +60,16 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
             </button>
 
             {card.interactive === "gearsim" ? (
-              <div className="border-b border-rule p-5 pt-12 sm:p-7 sm:pt-7">
-                <h2 className="pr-10 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
-                  {card.id === "gearsim" ? card.title : `${card.title}: try it`}
-                </h2>
-                <div className="mt-4">
+              <div className="p-4 pt-12 sm:p-5">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pr-12">
+                  <h2 className="text-xl leading-tight font-semibold tracking-tight sm:text-2xl">
+                    {card.id === "gearsim" ? card.title : `${card.title}: try it`}
+                  </h2>
+                  <Link href={card.cta.href.startsWith("/") ? card.cta.href : "/projects/can-gear-controller"} className="text-sm text-accent hover:underline">
+                    Read the case study
+                  </Link>
+                </div>
+                <div className="mt-3">
                   <GearSim />
                 </div>
               </div>
@@ -94,6 +99,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
             </div>
             )}
 
+            {!card.interactive && (
             <div className="grid gap-6 p-5 sm:grid-cols-[1fr_12rem] sm:p-7">
               <div>
                 <p className="flex flex-wrap items-center gap-2 text-sm">
@@ -112,7 +118,9 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
               </div>
             </div>
 
-            {card.episodes && (
+            )}
+
+            {card.episodes && !card.interactive && (
               <div className="border-t border-rule px-5 pt-5 pb-7 sm:px-7">
                 <h3 className="text-lg font-semibold tracking-tight">Episodes</h3>
                 <ol className="mt-3 divide-y divide-rule">

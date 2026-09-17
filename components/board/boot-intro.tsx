@@ -9,6 +9,8 @@ import { modes, type Mode, type ModeId } from "@/lib/modes";
 import { playTick, setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { RobotModel } from "./robot-model";
 import { PowerCircuit } from "./power-circuit";
+import { IntroBulb } from "./intro-bulb";
+import { IntroKnife } from "./intro-knife";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const NAME_LINES = ["MOHAMED RIZWAN", "AMEER JOHN"];
@@ -63,6 +65,25 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
   const [focus, setFocus] = useState(Math.max(0, modes.findIndex((m) => m.id === current)));
   const [sound, setSound] = useState(true);
   const [leaving, setLeaving] = useState(false);
+  // three intro styles to compare; ?intro=a|b|c, and a chooser while trying them
+  const [variant, setVariant] = useState<"a" | "b" | "c">("a");
+  const [chooser, setChooser] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("intro");
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem("riz-intro");
+    } catch {}
+    const v = (q ?? saved) as "a" | "b" | "c" | null;
+    if (v === "a" || v === "b" || v === "c") setVariant(v);
+    setChooser(q !== null || window.location.hostname === "localhost");
+  }, []);
+  const pickVariant = (v: "a" | "b" | "c") => {
+    setVariant(v);
+    try {
+      window.localStorage.setItem("riz-intro", v);
+    } catch {}
+  };
 
   useEffect(() => setSound(soundEnabled()), []);
 
@@ -185,8 +206,32 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
             <p className="mt-4 text-lg text-ink-2 sm:text-xl">Robotics and embedded systems engineer</p>
 
             {phase === "gate" ? (
-              <div className="mt-8 flex w-full justify-center">
-                <PowerCircuit onPowered={powerOn} />
+              <div className="mt-6 flex w-full flex-col items-center">
+                {variant === "a" && <PowerCircuit key="a" onPowered={powerOn} />}
+                {variant === "b" && <IntroBulb key="b" onPowered={powerOn} />}
+                {variant === "c" && <IntroKnife key="c" onPowered={powerOn} />}
+                {chooser && (
+                  <div className="mt-5 flex items-center gap-2 border border-rule p-1 text-xs" role="radiogroup" aria-label="Intro style">
+                    <span className="px-2 text-ink-2">Intro style</span>
+                    {([
+                      ["a", "A · Circuit"],
+                      ["b", "B · Real bulb"],
+                      ["c", "C · Knife switch"],
+                    ] as const).map(([v, label]) => (
+                      <button
+                        key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={variant === v}
+                        onClick={() => pickVariant(v)}
+                        className="px-2.5 py-1 font-medium"
+                        style={variant === v ? { background: "var(--accent)", color: "var(--accent-ink)" } : { color: "var(--ink-2)" }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="mt-10 min-h-[6rem] font-mono text-sm text-ink-2 sm:text-base" aria-live="polite">

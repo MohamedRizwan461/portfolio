@@ -144,7 +144,7 @@ function Head({ reduce }: { reduce: boolean }) {
       </mesh>
       {/* the face */}
       <mesh position={[0, 0.02, 0.2]} renderOrder={2}>
-        <planeGeometry args={[0.82, 0.9]} />
+        <planeGeometry args={[0.8, 0.85]} />
         <meshBasicMaterial map={face} transparent alphaTest={0.05} depthTest={false} toneMapped={false} />
       </mesh>
     </group>

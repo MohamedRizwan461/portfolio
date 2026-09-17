@@ -211,11 +211,42 @@ export function GearSim({ compact = false }: { compact?: boolean }) {
     }
   };
 
+  const [wreck, setWreck] = useState<"none" | "cut" | "crunch">("none");
+  const [shake, setShake] = useState(0);
+
+  // cut a wire: with CAN the receiver notices; without CAN nobody does, and the gearbox pays
+  const cutWire = () => {
+    if (withBus) {
+      if (!unplugged) togglePlug();
+      return;
+    }
+    if (wreck !== "none") return;
+    setWreck("cut");
+    say("warn", "A wire just snapped. Without CAN there's no counter, no checksum, no timeout. Nobody notices...");
+    setTimeout(() => {
+      setWreck("crunch");
+      setShake((n) => n + 1);
+      setCtx((c) => ({ ...c, current: Gear.R }));
+      say(
+        "bad",
+        `CRUNCH. The gearbox kept acting on garbage from the broken wire and slammed into Reverse at ${Math.max(40, speed).toFixed(0)} km/h. The gears are destroyed. With CAN, the timeout would have caught it in 250 ms.`,
+        "why SWR-032 exists",
+      );
+    }, reduce ? 200 : 1400);
+  };
+
+  const repair = () => {
+    setWreck("none");
+    setCtx({ current: Gear.P, speedX10: 0, throttle: 20, brake: false, faults: 0 });
+    say("info", "Repaired. Switch to With CAN bus and cut the wire again to see the controller catch it.");
+  };
+
   const reset = () => {
     setCtx({ current: Gear.P, speedX10: 0, throttle: 20, brake: false, faults: 0 });
     setUnplugged(false);
     setRxState("ok");
     setScrambled(null);
+    setWreck("none");
     say("info", "Reset. You're in Park. Press the brake, then pull the lever to D to drive.");
   };
 
@@ -226,140 +257,235 @@ export function GearSim({ compact = false }: { compact?: boolean }) {
     { g: Gear.D1, label: "D" },
   ];
   const leverActive = (g: Gear) => (g === Gear.D1 ? isForward(ctx.current) : ctx.current === g);
+  const crunched = wreck === "crunch";
+
+  // shards of the big gear for the crunch
+  const shards = Array.from({ length: 14 }, (_, i) => {
+    const a = (i / 14) * Math.PI * 2;
+    return { i, dx: Math.cos(a) * (70 + (i % 3) * 25), dy: Math.sin(a) * (50 + (i % 4) * 18), rot: (i % 2 ? 1 : -1) * (160 + i * 23), a };
+  });
+
+  const card = "border border-rule bg-[var(--surface-2)]";
 
   return (
-    <div className="text-ink">
-      <div className="mb-4">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold">How the car&apos;s controllers talk</p>
-          <div className="flex border border-rule p-0.5 text-sm" role="radiogroup" aria-label="Wiring">
-            {[true, false].map((v) => (
-              <button
-                key={String(v)}
-                type="button"
-                role="radio"
-                aria-checked={withBus === v}
-                onClick={() => setWithBus(v)}
-                className="px-3 py-1.5 font-medium"
-                style={withBus === v ? { background: "var(--accent)", color: "var(--accent-ink)" } : { color: "var(--ink-2)" }}
+    <div className={`text-ink ${compact ? "" : "lg:grid lg:grid-cols-12 lg:gap-4"}`}>
+      {/* ---------- the car ---------- */}
+      <motion.div
+        key={shake}
+        animate={crunched && !reduce ? { x: [0, -14, 12, -10, 8, -4, 0], rotate: [0, -1.5, 1.2, -1, 0.6, 0] } : undefined}
+        transition={{ duration: 0.55 }}
+        className={`relative flex flex-col gap-2.5 overflow-hidden p-3.5 lg:col-span-5 ${card}`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[0.65rem] font-semibold tracking-[0.14em] text-ink-2 uppercase">Gear</p>
+            <p className="text-4xl leading-none font-bold tabular-nums" style={{ color: crunched ? "#ef4444" : "var(--accent)" }}>
+              {gearName(ctx.current)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[0.65rem] font-semibold tracking-[0.14em] text-ink-2 uppercase">Speed</p>
+            <p className="text-3xl leading-none font-bold tabular-nums">
+              {speed.toFixed(0)}
+              <span className="ml-1 text-sm font-medium text-ink-2">km/h</span>
+            </p>
+            <p className="mt-0.5 text-xs text-ink-2 tabular-nums">engine {crunched ? "----" : rpm.toLocaleString()} rpm</p>
+          </div>
+        </div>
+
+        {/* meshing gears, or what is left of them */}
+        <div className="relative mx-auto h-24 w-full max-w-[15rem]">
+          <svg viewBox="-70 -55 180 110" className="absolute inset-0 h-full w-full" aria-hidden>
+            {!crunched ? (
+              <>
+                <g ref={driver}>
+                  <path d={BIG} fill="var(--accent)" opacity="0.9" />
+                  <circle r="12" fill="var(--surface-2)" />
+                  <circle r="4" fill="var(--accent)" />
+                </g>
+                <g transform="translate(69,0)">
+                  <g ref={driven}>
+                    <path d={SMALL} fill="var(--ink-2)" />
+                    <circle r="7" fill="var(--surface-2)" />
+                  </g>
+                </g>
+              </>
+            ) : (
+              <>
+                {shards.map((sh) => (
+                  <motion.path
+                    key={sh.i}
+                    d={`M0 0 L${Math.cos(sh.a) * 46} ${Math.sin(sh.a) * 46} L${Math.cos(sh.a + 0.45) * 46} ${Math.sin(sh.a + 0.45) * 46} Z`}
+                    fill={sh.i % 3 === 0 ? "#ef4444" : "var(--accent)"}
+                    initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+                    animate={reduce ? { opacity: 0.6 } : { x: sh.dx, y: sh.dy + 40, rotate: sh.rot, opacity: [1, 1, 0.5] }}
+                    transition={{ duration: 1.1, ease: [0.2, 0.8, 0.3, 1] }}
+                  />
+                ))}
+                {!reduce &&
+                  Array.from({ length: 18 }, (_, i) => (
+                    <motion.circle
+                      key={`s${i}`}
+                      r={2 + (i % 3)}
+                      fill={i % 2 ? "#ffd166" : "#ff7a1a"}
+                      initial={{ cx: 0, cy: 0, opacity: 1 }}
+                      animate={{ cx: Math.cos(i * 0.9) * (80 + i * 4), cy: Math.sin(i * 0.9) * (60 + i * 2), opacity: 0 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  ))}
+              </>
+            )}
+          </svg>
+          <AnimatePresence>
+            {crunched && (
+              <motion.p
+                initial={reduce ? false : { scale: 2.4, opacity: 0, rotate: -8 }}
+                animate={{ scale: 1, opacity: 1, rotate: -6 }}
+                transition={{ type: "spring", stiffness: 380, damping: 14 }}
+                className="absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight text-[#ef4444] [text-shadow:0_2px_0_#000]"
               >
-                {v ? "With CAN bus" : "Without CAN bus"}
+                CRUNCH!
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {crunched && !reduce && (
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[#ef4444]"
+            initial={{ opacity: 0.55 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.7 }}
+          />
+        )}
+
+        <label className="block">
+          <span className="flex justify-between text-xs">
+            <span>How fast is the car going?</span>
+            <span className="text-ink-2 tabular-nums">{speed.toFixed(0)} km/h</span>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={120}
+            value={speed}
+            disabled={crunched}
+            onChange={(e) => setCtx((c) => ({ ...c, speedX10: Number(e.target.value) * 10 }))}
+            className="mt-1 w-full accent-[var(--accent)]"
+          />
+        </label>
+        <label className="block">
+          <span className="flex justify-between text-xs">
+            <span>Throttle (how hard you press)</span>
+            <span className="text-ink-2 tabular-nums">{ctx.throttle}%</span>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={ctx.throttle}
+            disabled={crunched}
+            onChange={(e) => setCtx((c) => ({ ...c, throttle: Number(e.target.value) }))}
+            className="mt-1 w-full accent-[var(--accent)]"
+          />
+        </label>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex overflow-hidden border border-rule" role="group" aria-label="Gear lever">
+            {lever.map(({ g, label }) => (
+              <button
+                key={label}
+                type="button"
+                disabled={crunched}
+                onClick={() => request(g)}
+                aria-pressed={leverActive(g)}
+                className="h-10 w-10 text-base font-bold transition-colors disabled:opacity-40"
+                style={
+                  leverActive(g)
+                    ? { background: "var(--accent)", color: "var(--accent-ink)" }
+                    : { background: "var(--surface)", color: "var(--ink)" }
+                }
+              >
+                {label}
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            disabled={crunched}
+            onClick={() => setCtx((c) => ({ ...c, brake: !c.brake }))}
+            aria-pressed={ctx.brake}
+            className="h-10 border px-3 text-xs font-semibold transition-colors disabled:opacity-40"
+            style={
+              ctx.brake
+                ? { background: "#ef4444", borderColor: "#ef4444", color: "#fff" }
+                : { borderColor: "var(--rule-strong)", color: "var(--ink)" }
+            }
+          >
+            {ctx.brake ? "Brake: pressed" : "Press brake"}
+          </button>
+          <button type="button" onClick={reset} aria-label="Reset" className="ml-auto h-10 px-2 text-ink-2 hover:text-ink">
+            <ArrowCounterClockwise size={18} />
+          </button>
         </div>
-        <BusDiagram
-          withBus={withBus}
-          gear={gearName(ctx.current)}
-          speed={Math.round(speed)}
-          counter={counter}
-          state={unplugged ? "unplugged" : scrambled !== null ? "scrambled" : "ok"}
-        />
-      </div>
-      <div className={`grid gap-4 ${compact ? "" : "md:grid-cols-[1.05fr_1fr]"}`}>
-        {/* the car */}
-        <div className="flex flex-col gap-3 border border-rule bg-[var(--surface-2)] p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.14em] text-ink-2 uppercase">Gear</p>
-              <p className="text-5xl leading-none font-bold tabular-nums" style={{ color: "var(--accent)" }}>
-                {gearName(ctx.current)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold tracking-[0.14em] text-ink-2 uppercase">Speed</p>
-              <p className="text-4xl leading-none font-bold tabular-nums">
-                {speed.toFixed(0)}
-                <span className="ml-1 text-base font-medium text-ink-2">km/h</span>
-              </p>
-              <p className="mt-1 text-sm text-ink-2 tabular-nums">engine {rpm.toLocaleString()} rpm</p>
-            </div>
-          </div>
+      </motion.div>
 
-          {/* meshing gears */}
-          <svg viewBox="-70 -55 180 110" className="mx-auto h-28 w-full max-w-[16rem]" aria-hidden>
-            <g ref={driver}>
-              <path d={BIG} fill="var(--accent)" opacity="0.9" />
-              <circle r="12" fill="var(--surface-2)" />
-              <circle r="4" fill="var(--accent)" />
-            </g>
-            <g transform="translate(69,0)">
-              <g ref={driven}>
-                <path d={SMALL} fill="var(--ink-2)" />
-                <circle r="7" fill="var(--surface-2)" />
-              </g>
-            </g>
-          </svg>
-
-          <label className="block">
-            <span className="flex justify-between text-sm">
-              <span>How fast is the car going?</span>
-              <span className="text-ink-2 tabular-nums">{speed.toFixed(0)} km/h</span>
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={120}
-              value={speed}
-              onChange={(e) => setCtx((c) => ({ ...c, speedX10: Number(e.target.value) * 10 }))}
-              className="mt-1.5 w-full accent-[var(--accent)]"
-            />
-          </label>
-          <label className="block">
-            <span className="flex justify-between text-sm">
-              <span>Throttle (how hard you press)</span>
-              <span className="text-ink-2 tabular-nums">{ctx.throttle}%</span>
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={ctx.throttle}
-              onChange={(e) => setCtx((c) => ({ ...c, throttle: Number(e.target.value) }))}
-              className="mt-1.5 w-full accent-[var(--accent)]"
-            />
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex overflow-hidden border border-rule" role="group" aria-label="Gear lever">
-              {lever.map(({ g, label }) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => request(g)}
-                  aria-pressed={leverActive(g)}
-                  className="h-11 w-11 text-lg font-bold transition-colors"
-                  style={
-                    leverActive(g)
-                      ? { background: "var(--accent)", color: "var(--accent-ink)" }
-                      : { background: "var(--surface)", color: "var(--ink)" }
-                  }
-                >
-                  {label}
+      {/* ---------- the network ---------- */}
+      <div className="mt-3 flex flex-col gap-3 lg:col-span-7 lg:mt-0">
+        <div className={`p-3 ${card}`}>
+          <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold">How the car&apos;s controllers talk</p>
+            <div className="flex items-center gap-2">
+              <div className="flex border border-rule p-0.5 text-xs" role="radiogroup" aria-label="Wiring">
+                {[true, false].map((v) => (
+                  <button
+                    key={String(v)}
+                    type="button"
+                    role="radio"
+                    aria-checked={withBus === v}
+                    onClick={() => {
+                      setWithBus(v);
+                      if (wreck !== "none") repair();
+                    }}
+                    className="px-2.5 py-1 font-medium"
+                    style={withBus === v ? { background: "var(--accent)", color: "var(--accent-ink)" } : { color: "var(--ink-2)" }}
+                  >
+                    {v ? "With CAN bus" : "Without CAN bus"}
+                  </button>
+                ))}
+              </div>
+              {wreck === "crunch" ? (
+                <button type="button" onClick={repair} className="border border-rule-strong px-2.5 py-1 text-xs font-semibold hover:border-accent">
+                  Repair
                 </button>
-              ))}
+              ) : withBus && unplugged ? (
+                <button type="button" onClick={togglePlug} className="flex items-center gap-1 border border-rule-strong px-2.5 py-1 text-xs font-semibold hover:border-accent">
+                  <PlugsConnected size={14} /> Reconnect
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={cutWire}
+                  disabled={wreck === "cut"}
+                  className="flex items-center gap-1 border border-[#ef4444] px-2.5 py-1 text-xs font-semibold text-[#ef4444] hover:bg-[color-mix(in_srgb,#ef4444_15%,transparent)] disabled:opacity-50"
+                >
+                  <Plug size={14} /> Cut a wire
+                </button>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={() => setCtx((c) => ({ ...c, brake: !c.brake }))}
-              aria-pressed={ctx.brake}
-              className="h-11 border px-4 text-sm font-semibold transition-colors"
-              style={
-                ctx.brake
-                  ? { background: "#ef4444", borderColor: "#ef4444", color: "#fff" }
-                  : { borderColor: "var(--rule-strong)", color: "var(--ink)" }
-              }
-            >
-              {ctx.brake ? "Brake: pressed" : "Press brake"}
-            </button>
-            <button type="button" onClick={reset} aria-label="Reset" className="ml-auto h-11 px-2 text-ink-2 hover:text-ink">
-              <ArrowCounterClockwise size={20} />
-            </button>
           </div>
+          <BusDiagram
+            withBus={withBus}
+            gear={gearName(ctx.current)}
+            speed={Math.round(speed)}
+            counter={counter}
+            state={unplugged ? "unplugged" : scrambled !== null ? "scrambled" : "ok"}
+            wreck={wreck}
+          />
         </div>
 
-        {/* what the controller did, and the bus */}
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={note.id}
@@ -367,87 +493,65 @@ export function GearSim({ compact = false }: { compact?: boolean }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`border p-3.5 ${toneStyle[note.tone]}`}
+              className={`border p-3 ${toneStyle[note.tone]}`}
               role="status"
               aria-live="polite"
             >
-              <p className="text-xs font-semibold tracking-[0.14em] text-ink-2 uppercase">What the controller did</p>
-              <p className="mt-1.5 text-base leading-snug">{note.text}</p>
-              {note.rule && <p className="mt-1.5 font-mono text-xs text-ink-2">requirement {note.rule}</p>}
+              <p className="text-[0.65rem] font-semibold tracking-[0.14em] text-ink-2 uppercase">What the controller did</p>
+              <p className="mt-1 text-sm leading-snug">{note.text}</p>
+              {note.rule && <p className="mt-1 font-mono text-[0.7rem] text-ink-2">requirement {note.rule}</p>}
             </motion.div>
           </AnimatePresence>
 
-          <div className="border border-rule bg-[var(--surface-2)] p-3.5">
-            <p className="flex items-center justify-between text-xs font-semibold tracking-[0.14em] text-ink-2 uppercase">
-              <span>Message on the CAN bus</span>
+          <div className={`p-3 ${card}`}>
+            <p className="flex items-center justify-between text-[0.65rem] font-semibold tracking-[0.14em] text-ink-2 uppercase">
+              <span>Message on the bus</span>
               <span className="font-mono tracking-normal normal-case">0x{CAN_ID_GEAR_STATUS.toString(16).toUpperCase()}</span>
             </p>
-            <div className="mt-2 grid grid-cols-8 gap-1">
+            <div className="mt-1.5 grid grid-cols-8 gap-0.5">
               {received.map((b, i) => {
                 const hit = scrambled !== null && i === 1;
                 const labels = ["gear", "spd", "spd", "thr", "flt", "--", "cnt", "sum"];
                 return (
                   <div key={i} className="text-center">
                     <div
-                      className="border py-1.5 font-mono text-sm tabular-nums transition-colors"
+                      className="border py-1 font-mono text-xs tabular-nums transition-colors"
                       style={{
                         borderColor: hit ? "#ef4444" : i >= 6 ? "var(--accent)" : "var(--rule-strong)",
                         background: hit ? "color-mix(in srgb, #ef4444 20%, transparent)" : "transparent",
-                        opacity: unplugged ? 0.35 : 1,
+                        opacity: unplugged || !withBus ? 0.35 : 1,
                       }}
                     >
                       {b.toString(16).toUpperCase().padStart(2, "0")}
                     </div>
-                    <div className="mt-0.5 text-[0.65rem] text-ink-2">{labels[i]}</div>
+                    <div className="mt-0.5 text-[0.55rem] text-ink-2">{labels[i]}</div>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-2 text-sm text-ink-2">
-              The gear, speed and throttle packed into 8 bytes. <span className="text-ink">cnt</span> counts every frame, and{" "}
-              <span className="text-ink">sum</span> is a checksum so damaged messages get caught.
-            </p>
-
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: rxState === "ok" && rxOk ? "#22c55e" : "#ef4444" }}
-                aria-hidden
-              />
-              <span>
-                Receiver:{" "}
-                {rxState === "timeout"
-                  ? "fail-safe, no messages"
-                  : rxState === "checksum" || !rxOk
-                    ? "rejected a damaged frame"
-                    : "frames arriving, checksum OK"}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 text-xs">
+                <span className="h-2 w-2 rounded-full" style={{ background: rxState === "ok" && rxOk && withBus ? "#22c55e" : "#ef4444" }} aria-hidden />
+                {!withBus
+                  ? "no bus, no checks"
+                  : rxState === "timeout"
+                    ? "fail-safe, no messages"
+                    : rxState === "checksum" || !rxOk
+                      ? "rejected a damaged frame"
+                      : "checksum OK"}
               </span>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={scramble}
-                disabled={unplugged || scrambled !== null}
-                className="flex items-center gap-1.5 border border-rule-strong px-3 py-2 text-sm hover:border-accent disabled:opacity-40"
+                disabled={unplugged || scrambled !== null || !withBus}
+                className="flex items-center gap-1 border border-rule-strong px-2 py-1 text-xs hover:border-accent disabled:opacity-40"
               >
-                <Shuffle size={16} /> Scramble a byte
-              </button>
-              <button
-                type="button"
-                onClick={togglePlug}
-                className="flex items-center gap-1.5 border border-rule-strong px-3 py-2 text-sm hover:border-accent"
-              >
-                {unplugged ? <PlugsConnected size={16} /> : <Plug size={16} />}
-                {unplugged ? "Plug the bus back in" : "Unplug the bus"}
+                <Shuffle size={13} /> Scramble a byte
               </button>
             </div>
           </div>
         </div>
       </div>
-      <p className="mt-3 text-sm text-ink-2">
-        Try it: drive to 40 km/h, then pull the lever to R. This runs the same rules as the STM32 firmware, ported line for line.
-      </p>
     </div>
   );
 }

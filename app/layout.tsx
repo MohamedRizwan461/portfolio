@@ -58,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               name: site.name,
               alternateName: ["Riz", "Mohamed Rizwan", "Mohamed Rizwan A"],
               url: site.url,
-              image: `${site.url}/images/riz/headshot-cut.png`,
+              image: `${site.url}/images/riz/headshot.jpg`,
               jobTitle: site.role,
               email: `mailto:${site.email}`,
               address: { "@type": "PostalAddress", addressLocality: "Chicago", addressRegion: "IL", addressCountry: "US" },

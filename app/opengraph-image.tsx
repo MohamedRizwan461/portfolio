@@ -7,7 +7,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function OpengraphImage() {
-  const photo = await readFile(join(process.cwd(), "public/images/riz/headshot-cut.png"));
+  const photo = await readFile(join(process.cwd(), "public/images/riz/portrait-cut.png"));
   const photoSrc = `data:image/png;base64,${photo.toString("base64")}`;
 
   return new ImageResponse(
@@ -44,7 +44,7 @@ export default async function OpengraphImage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 360 }}>
-          <img src={photoSrc} width={330} height={362} alt="" style={{ objectFit: "contain" }} />
+          <img src={photoSrc} width={380} height={343} alt="" style={{ objectFit: "contain" }} />
         </div>
       </div>
     ),

@@ -392,7 +392,7 @@ function Chip({
           style={{ pointerEvents: "none" }}
         >
           <div className="flex flex-col items-center whitespace-nowrap select-none">
-            <span className={`font-mono font-bold tracking-wider text-white ${compact ? "text-[11px]" : "text-[15px]"}`}>
+            <span className={`font-mono font-bold tracking-wider text-white ${compact ? "text-[10px]" : "text-[12px]"}`}>
               {station.chip}
             </span>
           </div>
@@ -417,10 +417,10 @@ function Chip({
               padding: "2px 8px 3px",
             }}
           >
-            <div className="text-[19px] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+            <div className="text-[14px] font-semibold tracking-tight">
               {station.short}
             </div>
-            <div className="font-mono text-[13px] opacity-80">
+            <div className="font-mono text-[10px] opacity-75">
               {station.year}
             </div>
           </div>
