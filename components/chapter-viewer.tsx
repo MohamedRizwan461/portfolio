@@ -7,6 +7,9 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { chapters, type ChapterMedia } from "@/lib/journey";
 import { markChapterRead } from "@/lib/progress";
+import dynamic from "next/dynamic";
+
+const RobotSelf = dynamic(() => import("./robot-self"), { ssr: false });
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -213,7 +216,14 @@ export function ChapterViewer() {
 
             {/* evidence */}
             <div className="flex min-h-[16rem] gap-3 lg:col-span-7 lg:min-h-0">
-              {c.media.fit === "contain" ? (
+              {c.media.kind === "robot" ? (
+                <figure className="m-0 flex h-full min-h-[22rem] w-full flex-col">
+                  <div className="relative min-h-0 flex-1" role="img" aria-label={c.media.alt}>
+                    <RobotSelf accent="var(--accent)" />
+                  </div>
+                  <figcaption className="mt-2 text-xs text-ink-2">{c.media.caption}</figcaption>
+                </figure>
+              ) : c.media.fit === "contain" ? (
                 <Documents main={c.media} extra={c.extra} />
               ) : (
                 <>

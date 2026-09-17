@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { milestones } from "@/lib/journey";
 import { SignalDot } from "./motion-bits";
+import { CarScene, CircuitScene } from "./illustrations";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -98,19 +99,25 @@ function MilestoneItem({
       {!vertical && (
         <motion.span
           aria-hidden
-          className="mt-4 block h-14 w-20 border border-rule bg-white"
+          className="mt-4 block h-20 w-32 overflow-hidden border border-rule bg-[var(--surface-2)]"
           initial={reduce ? false : { opacity: 0 }}
           animate={inView ? { opacity: 1 } : undefined}
           transition={{ duration: 0.5, delay: 0.45 + index * 0.12 }}
-          style={{ visibility: milestone.thumb ? "visible" : "hidden" }}
+          style={{ visibility: milestone.thumb || milestone.scene ? "visible" : "hidden" }}
         >
+          {milestone.scene === "holo" && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/video/face-holo.webp" alt="" className="h-full w-full bg-black object-cover" />
+          )}
+          {milestone.scene === "circuit" && <CircuitScene className="h-full w-full" />}
+          {milestone.scene === "car" && <CarScene className="h-full w-full" />}
           {milestone.thumb && (
             <Image
               src={milestone.thumb.src}
               alt=""
-              width={160}
-              height={112}
-              sizes="80px"
+              width={256}
+              height={160}
+              sizes="128px"
               className="h-full w-full object-cover"
             />
           )}

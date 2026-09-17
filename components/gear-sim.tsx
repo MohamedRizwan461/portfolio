@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, Plug, PlugsConnected, Shuffle } from "@phosphor-icons/react/dist/ssr";
+import { BusDiagram } from "./bus-diagram";
 import {
   CAN_ID_GEAR_STATUS,
   CAN_TIMEOUT_MS,
@@ -65,6 +66,7 @@ export function GearSim({ compact = false }: { compact?: boolean }) {
   const [unplugged, setUnplugged] = useState(false);
   const [rxState, setRxState] = useState<"ok" | "checksum" | "timeout">("ok");
   const [scrambled, setScrambled] = useState<number | null>(null);
+  const [withBus, setWithBus] = useState(true);
   const lastRx = useRef(Date.now());
   const noteId = useRef(1);
   const driver = useRef<SVGGElement>(null);
@@ -227,6 +229,33 @@ export function GearSim({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="text-ink">
+      <div className="mb-4">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold">How the car&apos;s controllers talk</p>
+          <div className="flex border border-rule p-0.5 text-sm" role="radiogroup" aria-label="Wiring">
+            {[true, false].map((v) => (
+              <button
+                key={String(v)}
+                type="button"
+                role="radio"
+                aria-checked={withBus === v}
+                onClick={() => setWithBus(v)}
+                className="px-3 py-1.5 font-medium"
+                style={withBus === v ? { background: "var(--accent)", color: "var(--accent-ink)" } : { color: "var(--ink-2)" }}
+              >
+                {v ? "With CAN bus" : "Without CAN bus"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <BusDiagram
+          withBus={withBus}
+          gear={gearName(ctx.current)}
+          speed={Math.round(speed)}
+          counter={counter}
+          state={unplugged ? "unplugged" : scrambled !== null ? "scrambled" : "ok"}
+        />
+      </div>
       <div className={`grid gap-4 ${compact ? "" : "md:grid-cols-[1.05fr_1fr]"}`}>
         {/* the car */}
         <div className="flex flex-col gap-3 border border-rule bg-[var(--surface-2)] p-4">

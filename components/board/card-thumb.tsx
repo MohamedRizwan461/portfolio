@@ -4,6 +4,7 @@ import Image from "next/image";
 import { EnvelopeSimple, GithubLogo } from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useRef } from "react";
 import type { CardThumb as Thumb } from "@/lib/cards";
+import { CanBusScene } from "@/components/illustrations";
 
 /** One thumbnail. Video thumbs play only while `playing` is true, like a Netflix hover preview. */
 export function CardThumb({ thumb, playing = false, large = false, accent = "#4d8dff" }: { thumb: Thumb; playing?: boolean; large?: boolean; accent?: string }) {
@@ -85,6 +86,8 @@ export function CardThumb({ thumb, playing = false, large = false, accent = "#4d
           <GithubLogo size={large ? 96 : 48} weight="fill" className="text-ink" aria-hidden />
         </div>
       );
+    case "canbus":
+      return <CanBusScene className="absolute inset-0 h-full w-full" />;
     case "gearsim":
       return (
         <div className="absolute inset-0 flex items-center justify-center gap-3 bg-[radial-gradient(circle_at_30%_30%,var(--surface-2),var(--surface))]">

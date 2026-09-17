@@ -6,6 +6,7 @@ import { Reveal } from "@/components/motion-bits";
 import { Branch, Wire, WireSection } from "@/components/wire";
 import { VideoFigure } from "@/components/video-figure";
 import { GearSim } from "@/components/gear-sim";
+import { CarScene, CircuitScene, ProtoScene, VisionScene } from "@/components/illustrations";
 import { Container, Figure, SectionHead, SpecTable } from "@/components/ui";
 import { projects } from "@/lib/content";
 
@@ -135,7 +136,8 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           </Wire>
         </div>
 
-        <aside className="space-y-10 lg:col-span-5">
+        {/* follows you down the page so the right side is never empty */}
+        <aside className="space-y-10 self-start lg:sticky lg:top-20 lg:col-span-5">
           <Branch>
             <section aria-labelledby="characteristics">
               <SectionHead id="characteristics">Characteristics</SectionHead>
@@ -145,34 +147,29 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             </section>
           </Branch>
 
-          {project.videos && project.videos.length > 0 && (
-            <section aria-labelledby="footage">
-              <Branch>
-                <SectionHead id="footage">Footage</SectionHead>
-              </Branch>
-              <div className="mt-4 space-y-8">
-                {project.videos.map((v, i) => (
-                  <Branch key={v.src} index={i}>
-                    <VideoFigure video={v} />
-                  </Branch>
-                ))}
+          {project.videos && project.videos.length > 0 ? (
+            <Branch>
+              <VideoFigure video={project.videos[0]} />
+            </Branch>
+          ) : figures[0] ? (
+            <Branch>
+              <Figure figure={figures[0]} number={1} preload sizes="(min-width: 1024px) 440px, 100vw" />
+            </Branch>
+          ) : (
+            <Branch>
+              {/* no photos for this one yet: a scene of what it does */}
+              <div className="aspect-[2/1] overflow-hidden border border-rule">
+                {project.slug === "ev-boost-converter" ? (
+                  <CircuitScene className="h-full w-full" />
+                ) : project.slug === "supply-chain-risk" ? (
+                  <VisionScene className="h-full w-full" />
+                ) : project.slug === "can-gear-controller" ? (
+                  <CarScene className="h-full w-full" />
+                ) : (
+                  <ProtoScene className="h-full w-full" />
+                )}
               </div>
-            </section>
-          )}
-
-          {figures.length > 0 && (
-            <section aria-labelledby="figures">
-              <Branch>
-                <SectionHead id="figures">Figures</SectionHead>
-              </Branch>
-              <div className="mt-4 space-y-8">
-                {figures.map((f, i) => (
-                  <Branch key={f.caption} index={i}>
-                    <Figure figure={f} number={i + 1} preload={i === 0} sizes="(min-width: 1024px) 440px, 100vw" />
-                  </Branch>
-                ))}
-              </div>
-            </section>
+            </Branch>
           )}
 
           {project.links.length > 0 && (
@@ -198,6 +195,32 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           )}
         </aside>
       </Container>
+
+      {(() => {
+        const extraVideos = project.videos?.slice(1) ?? [];
+        const galleryFigures = project.videos && project.videos.length > 0 ? figures : figures.slice(1);
+        const offset = project.videos && project.videos.length > 0 ? 0 : 1;
+        if (!extraVideos.length && !galleryFigures.length) return null;
+        return (
+          <Container className="pb-12">
+            <section aria-labelledby="gallery">
+              <SectionHead id="gallery">Gallery</SectionHead>
+              <div className="mt-6 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6 [&>*]:break-inside-avoid">
+                {extraVideos.map((v, i) => (
+                  <Branch key={v.src} index={i}>
+                    <VideoFigure video={v} />
+                  </Branch>
+                ))}
+                {galleryFigures.map((f, i) => (
+                  <Branch key={f.caption} index={i + extraVideos.length}>
+                    <Figure figure={f} number={i + 1 + offset} sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw" />
+                  </Branch>
+                ))}
+              </div>
+            </section>
+          </Container>
+        );
+      })()}
 
       <Container>
         <Link

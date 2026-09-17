@@ -3,11 +3,12 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Power, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
+import { SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
 import * as THREE from "three";
 import { modes, type Mode, type ModeId } from "@/lib/modes";
-import { playPowerOn, playTick, setSoundEnabled, soundEnabled } from "@/lib/sound";
+import { playTick, setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { RobotModel } from "./robot-model";
+import { PowerCircuit } from "./power-circuit";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const NAME_LINES = ["MOHAMED RIZWAN", "AMEER JOHN"];
@@ -65,11 +66,10 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
 
   useEffect(() => setSound(soundEnabled()), []);
 
+  // the circuit plays the sound on the switch flip, which is the user's gesture
   const powerOn = useCallback(() => {
-    if (phase !== "gate") return;
-    playPowerOn();
-    setPhase("powering");
-  }, [phase]);
+    setPhase((p) => (p === "gate" ? "powering" : p));
+  }, []);
 
   // the name lights up letter by letter, then the log, then the operators
   useEffect(() => {
@@ -103,13 +103,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (phase === "gate") {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          powerOn();
-        }
-        return;
-      }
+      if (phase === "gate") return;
       if (phase === "powering") {
         setPhase("select");
         return;
@@ -191,22 +185,9 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
             <p className="mt-4 text-lg text-ink-2 sm:text-xl">Robotics and embedded systems engineer</p>
 
             {phase === "gate" ? (
-              <>
-                <motion.button
-                  type="button"
-                  onClick={powerOn}
-                  initial={reduce ? false : { opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
-                  className="group relative mt-12 flex h-28 w-28 items-center justify-center rounded-full border-2 border-accent text-accent transition-colors hover:bg-accent hover:text-[var(--accent-ink)] focus-visible:bg-accent focus-visible:text-[var(--accent-ink)]"
-                  aria-label="Power on"
-                >
-                  <span aria-hidden className="absolute inset-0 rounded-full border-2 border-accent opacity-60 motion-safe:animate-ping" />
-                  <Power size={44} weight="bold" />
-                </motion.button>
-                <p className="mt-6 text-base text-ink">Click to power on</p>
-                <p className="mt-1 text-sm text-ink-2">or press Enter</p>
-              </>
+              <div className="mt-8 flex w-full justify-center">
+                <PowerCircuit onPowered={powerOn} />
+              </div>
             ) : (
               <div className="mt-10 min-h-[6rem] font-mono text-sm text-ink-2 sm:text-base" aria-live="polite">
                 {BOOT.slice(0, bootLines).map((l) => (

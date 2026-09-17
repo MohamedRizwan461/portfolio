@@ -8,7 +8,8 @@ export type CardThumb =
   | { kind: "volt" }
   | { kind: "github" }
   | { kind: "contact" }
-  | { kind: "gearsim" };
+  | { kind: "gearsim" }
+  | { kind: "canbus" };
 
 export type Card = {
   id: string;
@@ -114,7 +115,7 @@ export const cards: Record<string, Card> = {
     blurb: "Project write-ups, the supply chain risk app, and the source of this portfolio: Next.js, three.js and React Three Fiber.",
     cta: { label: "Open GitHub", href: site.github, external: true },
   },
-  can: { ...projectCard("can", "can-gear-controller", { kind: "canframe" }), interactive: "gearsim" },
+  can: { ...projectCard("can", "can-gear-controller", { kind: "canbus" }), interactive: "gearsim" },
   gearsim: {
     id: "gearsim",
     title: "Drive my gear controller",

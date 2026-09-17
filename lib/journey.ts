@@ -1,5 +1,5 @@
 export type ChapterMedia = {
-  kind: "image" | "video";
+  kind: "image" | "video" | "robot";
   src: string;
   poster?: string;
   width?: number;
@@ -196,13 +196,11 @@ export const chapters: Chapter[] = [
       "Industry experience, on a team building real machines. Somewhere I can be useful from the first week, learn from engineers further along than me, and contribute something back to the company and to the people the machines are for.",
     ],
     media: {
-      kind: "image",
+      kind: "robot",
       src: "/images/riz/headshot-cut.png",
-      width: 820,
-      height: 900,
-      alt: "Mohamed Rizwan Ameer John",
-      caption: "Mohamed Rizwan Ameer John. Chicago, open to relocation.",
-      fit: "contain",
+      alt: "Riz as a robot: his face on a helmet, one arm waving and one holding a circuit board, on a wheeled base",
+      caption: "Ready to deploy. Chicago, open to relocation.",
+      fit: "cover",
     },
     facts: [
       { k: "Education", v: "MS CS 2026 · BE EEE 2023" },
@@ -218,9 +216,10 @@ export const milestones: {
   label: string;
   note: string;
   thumb?: { src: string; alt: string };
+  scene?: "holo" | "circuit" | "car";
 }[] = [
-  { id: "biology", label: "My journey", note: "Where it began" },
-  { id: "detour", label: "Electronics", note: "BE, Chennai" },
+  { id: "biology", label: "My journey", note: "Where it began", scene: "holo" },
+  { id: "detour", label: "Electronics", note: "BE, Chennai", scene: "circuit" },
   {
     id: "assistive",
     label: "Assistive robotics",
@@ -233,5 +232,5 @@ export const milestones: {
     note: "MS, 2026",
     thumb: { src: "/images/amr/robot.jpg", alt: "Autonomous mobile robot" },
   },
-  { id: "av", label: "Autonomous vehicles", note: "Where I am headed" },
+  { id: "av", label: "Autonomous vehicles", note: "Where I am headed", scene: "car" },
 ];

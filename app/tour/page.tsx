@@ -6,6 +6,7 @@ import { JourneyStrip } from "@/components/journey-strip";
 import { HudPortrait } from "@/components/hud-portrait";
 import { CountUp, Typewriter } from "@/components/motion-bits";
 import { VideoFigure } from "@/components/video-figure";
+import { CanBusScene, CarScene, ProtoScene, VisionScene } from "@/components/illustrations";
 import { Button, ButtonAnchor } from "@/components/ui";
 import { featured, projects, proof, site, strengths } from "@/lib/content";
 
@@ -164,9 +165,7 @@ const slides: Slide[] = [
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
                     />
                   ) : (
-                    <span className="num flex h-full items-center justify-center font-mono text-sm text-accent">
-                      0x18F00500
-                    </span>
+                    <CanBusScene className="h-full w-full" />
                   )}
                 </span>
                 <span className="flex flex-1 flex-col p-5">
@@ -237,7 +236,17 @@ const slides: Slide[] = [
         <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] leading-tight font-semibold tracking-[-0.03em]">What I do</h2>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {strengths.map((s) => (
-            <li key={s.title} className="panel p-5">
+            <li key={s.title} className="panel overflow-hidden">
+              <div className="aspect-[2/1] border-b border-rule">
+                {s.title.startsWith("Embedded") ? (
+                  <CarScene className="h-full w-full" />
+                ) : s.title.startsWith("Computer") ? (
+                  <VisionScene className="h-full w-full" />
+                ) : (
+                  <ProtoScene className="h-full w-full" />
+                )}
+              </div>
+              <div className="p-5">
               <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
               <p className="mt-3 text-sm text-ink-2">{s.body}</p>
               <ul className="mt-4 flex flex-wrap gap-1.5">
@@ -247,6 +256,7 @@ const slides: Slide[] = [
                   </li>
                 ))}
               </ul>
+              </div>
             </li>
           ))}
         </ul>

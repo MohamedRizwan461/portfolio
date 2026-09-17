@@ -203,3 +203,49 @@ body,
 html {
   transition: background-color 400ms ease, color 400ms ease;
 }
+
+/* ---- illustration loops ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .il-lanes { animation: il-lanes 0.9s linear infinite; }
+  .il-spin { animation: spin 0.6s linear infinite; }
+  .il-bob { animation: il-bob 0.5s ease-in-out infinite alternate; }
+  .il-waves path { animation: il-wave 1.4s ease-out infinite; }
+  .il-waves path:nth-child(2) { animation-delay: 0.2s; }
+  .il-waves path:nth-child(3) { animation-delay: 0.4s; }
+  .il-look { animation: il-look 3.2s ease-in-out infinite; }
+  .il-lock { animation: il-lock 3.2s ease-in-out infinite; }
+  .il-blink { animation: il-blink 1.2s ease-in-out infinite; }
+  .il-beam { animation: il-blink 3.2s ease-in-out infinite; }
+  .il-trace { stroke-dasharray: 260; animation: il-draw 2.4s linear infinite; }
+  .il-led { animation: il-blink 0.9s steps(2, jump-none) infinite; }
+  .il-current { stroke-dasharray: 18 300; animation: il-flow 2.2s linear infinite; }
+  .il-frame-right { animation: il-right 2.6s ease-in-out infinite; }
+  .il-frame-left { animation: il-left 2.6s ease-in-out infinite 1.3s; }
+}
+@keyframes il-lanes { to { transform: translateX(-44px); } }
+@keyframes il-bob { to { transform: translateY(-1.5px); } }
+@keyframes il-wave { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes il-look { 0%, 100% { transform: translateX(-4px); } 50% { transform: translateX(5px); } }
+@keyframes il-lock { 0%, 40% { opacity: 0; transform: scale(1.2); } 55%, 90% { opacity: 1; transform: scale(1); } 100% { opacity: 0; } }
+@keyframes il-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes il-draw { from { stroke-dashoffset: 260; } to { stroke-dashoffset: 0; } }
+@keyframes il-flow { from { stroke-dashoffset: 318; } to { stroke-dashoffset: 0; } }
+@keyframes il-right { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateX(70px); opacity: 0; } }
+@keyframes il-left { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateX(-70px); opacity: 0; } }
+
+.il-spin,
+.il-lock,
+.il-look,
+.il-led {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* power-on circuit */
+@media (prefers-reduced-motion: no-preference) {
+  .pc-current { stroke-dasharray: 14 22; animation: pc-flow 0.6s linear infinite; }
+  .pc-glow { animation: il-blink 1.4s ease-in-out infinite; }
+  .pc-ping { transform-box: fill-box; transform-origin: center; animation: pc-ping 1.4s ease-out infinite; }
+}
+@keyframes pc-flow { to { stroke-dashoffset: -36; } }
+@keyframes pc-ping { 0% { opacity: 0.9; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.5); } }
