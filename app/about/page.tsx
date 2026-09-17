@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ChapterViewer } from "@/components/chapter-viewer";
+import { AboutDrive } from "@/components/story/about-drive";
+import { beats } from "@/lib/story";
 
 export const metadata: Metadata = {
   title: "About",
@@ -11,9 +12,22 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto flex h-[100dvh] min-h-[38rem] w-full max-w-6xl flex-col px-4 pt-24 pb-5 sm:px-8 sm:pt-28 max-lg:h-auto">
+    <>
       <h1 className="sr-only">About Mohamed Rizwan Ameer John</h1>
-      <ChapterViewer />
-    </div>
+      {/* the story in plain text: for search engines, screen readers and anyone skimming */}
+      <div className="sr-only">
+        {beats.map((b) => (
+          <section key={b.id}>
+            <h2>
+              {b.label}, {b.years}
+            </h2>
+            {b.lines.map((l) => (
+              <p key={l}>{l}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+      <AboutDrive />
+    </>
   );
 }

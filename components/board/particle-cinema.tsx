@@ -65,7 +65,8 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 
 
 function Particles({ cue, reduce, accent, offset = 0 }: { cue: Cue; reduce: boolean; accent: string; offset?: number }) {
   const { viewport, size, clock, camera } = useThree();
-  const n = size.width < 768 ? 15000 : 32000;
+  const cores = typeof navigator === "undefined" ? 8 : (navigator.hardwareConcurrency ?? 8);
+  const n = size.width < 768 ? 15000 : cores <= 4 ? 18000 : 32000;
   const vw = viewport.width;
   const vh = viewport.height;
 

@@ -27,7 +27,7 @@ import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { stations } from "@/lib/stations";
 import { Mask } from "@/components/motion-bits";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BootIntro } from "./boot-intro";
+const BootIntro = dynamic(() => import("./boot-intro").then((m) => m.BootIntro), { ssr: false });
 import { RowDock } from "./row-dock";
 import { TitleModal } from "./title-modal";
 

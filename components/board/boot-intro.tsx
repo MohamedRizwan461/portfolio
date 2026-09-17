@@ -7,7 +7,11 @@ import { SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
 import * as THREE from "three";
 import { modes, type Mode, type ModeId } from "@/lib/modes";
 import { playImpact, playRiser, playSelect, playTick, playWhoosh, setSoundEnabled, soundEnabled, unlockAudio } from "@/lib/sound";
-import { ParticleCinema, type Cue } from "./particle-cinema";
+import dynamic from "next/dynamic";
+import type { Cue } from "./particle-cinema";
+
+// the particle stage and its glow only load when the intro actually plays
+const ParticleCinema = dynamic(() => import("./particle-cinema").then((m) => m.ParticleCinema), { ssr: false });
 import { RobotModel } from "./robot-model";
 
 const EASE = [0.16, 1, 0.3, 1] as const;

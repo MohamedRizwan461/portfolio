@@ -351,7 +351,7 @@ function Lamps() {
 function City() {
   const mesh = useMemo(() => {
     const r = rng(11);
-    const count = 420;
+    const count = (typeof navigator !== "undefined" ? navigator.hardwareConcurrency ?? 8 : 8) <= 4 ? 180 : 420;
     const g = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: "#0d1119", roughness: 0.9 }), count);
     const mtx = new THREE.Matrix4();
     const q = new THREE.Quaternion();
@@ -365,7 +365,7 @@ function City() {
   }, []);
   const windows = useMemo(() => {
     const r = rng(23);
-    const count = 900;
+    const count = (typeof navigator !== "undefined" ? navigator.hardwareConcurrency ?? 8 : 8) <= 4 ? 350 : 900;
     const g = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.5, 0.7), new THREE.MeshBasicMaterial({ color: "#ffd9a0", toneMapped: false }), count);
     const mtx = new THREE.Matrix4();
     for (let i = 0; i < count; i++) {
@@ -663,7 +663,7 @@ export function CruiseScene({
 }) {
   const camRef = useRef(new THREE.Vector3());
   return (
-    <Canvas dpr={[1, 1.75]} camera={{ fov: 38, near: 0.1, far: 400 }} gl={{ antialias: true, powerPreference: "high-performance" }} onCreated={({ gl }) => gl.setClearColor("#05070b")}>
+    <Canvas dpr={[1, 1.6]} camera={{ fov: 38, near: 0.1, far: 400 }} gl={{ antialias: true, powerPreference: "high-performance" }} onCreated={({ gl }) => gl.setClearColor("#05070b")}>
       <fog attach="fog" args={["#05070b", 28, 120]} />
       {/* a cool night: neutral key, a soft blue rim, city reflections in the paint */}
       <hemisphereLight args={["#9fb4cc", "#06080b", 0.45]} />

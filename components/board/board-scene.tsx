@@ -539,7 +539,7 @@ export default function BoardScene(props: SceneProps) {
   return (
     <Canvas
       className={`transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
-      dpr={[1, 1.75]}
+      dpr={[1, 1.6]}
       gl={{ antialias: true, alpha: true }}
       camera={{
         position: compact ? [0, 20, 9] : [0, 15.5, 11.5],
