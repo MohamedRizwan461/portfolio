@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/
 import { Reveal } from "@/components/motion-bits";
 import { Branch, Wire, WireSection } from "@/components/wire";
 import { VideoFigure } from "@/components/video-figure";
+import { GearSim } from "@/components/gear-sim";
 import { Container, Figure, SectionHead, SpecTable } from "@/components/ui";
 import { projects } from "@/lib/content";
 
@@ -90,6 +91,18 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           </div>
         </Reveal>
       </Container>
+
+      {project.slug === "can-gear-controller" && (
+        <Container className="pt-10">
+          <section aria-labelledby="try-it" className="border border-rule bg-[var(--surface)] p-5 sm:p-7">
+            <h2 id="try-it" className="text-2xl font-semibold tracking-tight">Drive it yourself</h2>
+            <p className="mt-1 text-ink-2">No engineering background needed. Try to shift into reverse at speed.</p>
+            <div className="mt-5">
+              <GearSim />
+            </div>
+          </section>
+        </Container>
+      )}
 
       <Container className="grid gap-12 pt-12 pb-12 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-7">

@@ -7,7 +7,8 @@ export type CardThumb =
   | { kind: "canframe" }
   | { kind: "volt" }
   | { kind: "github" }
-  | { kind: "contact" };
+  | { kind: "contact" }
+  | { kind: "gearsim" };
 
 export type Card = {
   id: string;
@@ -22,6 +23,8 @@ export type Card = {
   station?: string;
   /** "chapters" shows how much of the About story has been read */
   progress?: "chapters";
+  /** an interactive demo shown in the title window instead of the header media */
+  interactive?: "gearsim";
 };
 
 function projectCard(
@@ -111,7 +114,19 @@ export const cards: Record<string, Card> = {
     blurb: "Project write-ups, the supply chain risk app, and the source of this portfolio: Next.js, three.js and React Three Fiber.",
     cta: { label: "Open GitHub", href: site.github, external: true },
   },
-  can: projectCard("can", "can-gear-controller", { kind: "canframe" }),
+  can: { ...projectCard("can", "can-gear-controller", { kind: "canframe" }), interactive: "gearsim" },
+  gearsim: {
+    id: "gearsim",
+    title: "Drive my gear controller",
+    meta: "Interactive · no engineering needed",
+    badges: ["Try it"],
+    thumb: { kind: "gearsim" },
+    blurb:
+      "A car's gearbox controller decides which gear you're in, and refuses shifts that would break something. Drive it, try to break it, and watch the safety rules and the CAN bus messages react.",
+    cta: { label: "Read the case study", href: "/projects/can-gear-controller" },
+    station: "can-gear-controller",
+    interactive: "gearsim",
+  },
   knee: projectCard("knee", "smart-knee-actuator", {
     kind: "video",
     src: "/video/knee-actuator-working.mp4",

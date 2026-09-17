@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { ArrowRight, ArrowUpRight, DownloadSimple, X } from "@phosphor-icons/react/dist/ssr";
 import type { Card } from "@/lib/cards";
+import { GearSim } from "@/components/gear-sim";
 import { CardThumb } from "./card-thumb";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -58,7 +59,16 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
               <X size={16} weight="bold" />
             </button>
 
-            {/* header media */}
+            {card.interactive === "gearsim" ? (
+              <div className="border-b border-rule p-5 pt-12 sm:p-7 sm:pt-7">
+                <h2 className="pr-10 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                  {card.id === "gearsim" ? card.title : `${card.title}: try it`}
+                </h2>
+                <div className="mt-4">
+                  <GearSim />
+                </div>
+              </div>
+            ) : (
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               <CardThumb thumb={card.thumb} playing={!reduce} large accent={accent} />
               <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[color-mix(in_srgb,var(--surface)_25%,transparent)] to-transparent" />
@@ -82,6 +92,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
                 </div>
               </div>
             </div>
+            )}
 
             <div className="grid gap-6 p-5 sm:grid-cols-[1fr_12rem] sm:p-7">
               <div>

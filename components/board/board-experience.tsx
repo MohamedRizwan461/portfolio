@@ -26,6 +26,7 @@ import { applyTheme, DEFAULT_THEME, readThemeChoice, SCHEME_STORAGE_KEY, THEME_S
 import { markStationSeen } from "@/lib/progress";
 import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { stations } from "@/lib/stations";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { BootIntro } from "./boot-intro";
 import { RowDock } from "./row-dock";
 import { TitleModal } from "./title-modal";
@@ -77,8 +78,8 @@ function BusStatus() {
   return (
     <span className="num hidden items-center gap-2 border border-rule bg-ground/60 px-3 py-1.5 font-mono text-xs tracking-wide text-ink-2 backdrop-blur md:flex">
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-2 opacity-60 motion-reduce:hidden" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-2" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-60 motion-reduce:hidden" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
       </span>
       BUS OK · CNT {n.toString(16).toUpperCase()} · CRC OK
     </span>
@@ -129,7 +130,7 @@ export function BoardExperience() {
       setTheme(choice.theme);
       setScheme(choice.scheme);
     } catch {}
-    setShowPalettes(params.has("palettes") || window.location.hostname === "localhost");
+    setShowPalettes(params.has("themes"));
     if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
     if (replay || !saved) setIntro("gate");
   }, []);
@@ -358,6 +359,7 @@ export function BoardExperience() {
           >
             {sound ? <SpeakerHigh size={16} aria-hidden /> : <SpeakerSlash size={16} aria-hidden />}
           </button>
+          <ThemeToggle scheme={scheme} onChange={chooseScheme} className={`${btn} px-2.5`} />
           <a
             href={site.resumePdf}
             download

@@ -134,7 +134,7 @@ export const themes: Theme[] = [
       board: "#20242b",
       boardEdge: "#2a2f37",
       copper: "#c9a45c",
-      accents: { recruiter: "#ff5252", engineer: "#3fa9ff", curious: "#ffb020" },
+      accents: { recruiter: "#3fa9ff", engineer: "#ff4d4f", curious: "#ffb020" },
     },
     light: {
       ...LIGHT,
@@ -145,7 +145,7 @@ export const themes: Theme[] = [
       board: "#20242b",
       boardEdge: "#2a2f37",
       copper: "#c9a45c",
-      accents: { recruiter: "#d62f2f", engineer: "#1a73c9", curious: "#c07a00" },
+      accents: { recruiter: "#1a73c9", engineer: "#d62f2f", curious: "#b86e00" },
     },
   },
   {
@@ -163,7 +163,7 @@ export const themes: Theme[] = [
       board: "#2b2f36",
       boardEdge: "#353a42",
       copper: "#b39462",
-      accents: { recruiter: "#e5484d", engineer: "#4c9ffe", curious: "#f5a623" },
+      accents: { recruiter: "#4c9ffe", engineer: "#e5484d", curious: "#f5a623" },
     },
     light: {
       ...LIGHT,
@@ -174,7 +174,7 @@ export const themes: Theme[] = [
       board: "#2b2f36",
       boardEdge: "#353a42",
       copper: "#b39462",
-      accents: { recruiter: "#c42b30", engineer: "#1d66c7", curious: "#b06f00" },
+      accents: { recruiter: "#1d66c7", engineer: "#c42b30", curious: "#b06f00" },
     },
   },
   {
@@ -377,10 +377,10 @@ export const themes: Theme[] = [
   },
 ];
 
-export const THEME_STORAGE_KEY = "riz-palette";
+export const THEME_STORAGE_KEY = "riz-theme";
 export const SCHEME_STORAGE_KEY = "riz-scheme";
 export const THEME_EVENT = "riz-theme-change";
-export const DEFAULT_THEME = themes[0];
+export const DEFAULT_THEME = themes.find((t) => t.id === "ev-carbon")!;
 
 function hexToRgba(hex: string, a: number) {
   const n = parseInt(hex.slice(1), 16);

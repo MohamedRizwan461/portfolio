@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/lib/content";
+import { ThemeToggle } from "./theme-toggle";
 
 const nav = [
   { href: "/tour", label: "Tour" },
@@ -19,7 +20,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-rule bg-ground/60 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-0">
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-0">
         <Link href="/" className="ease flex items-baseline gap-3 no-underline hover:text-accent">
           <span className="font-mono text-sm font-semibold tracking-tight">{site.designation}</span>
           <span className="text-sm text-ink-2">{site.short}</span>
@@ -44,6 +45,7 @@ export function SiteHeader() {
             })}
           </ul>
         </nav>
+        <ThemeToggle className="ease absolute top-3 right-4 flex h-9 w-9 items-center justify-center border border-rule text-ink hover:border-accent hover:text-accent sm:static" />
       </div>
     </header>
   );

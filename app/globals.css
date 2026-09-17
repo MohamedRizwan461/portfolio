@@ -2,14 +2,14 @@
 
 /* One theme, locked: a dark instrument panel lit by two signal fields. */
 :root {
-  --ground: #0c1422;
+  --ground: #0d0f12;
   --panel: rgba(255, 255, 255, 0.035);
   --panel-strong: rgba(255, 255, 255, 0.07);
   --ink: #eef2f6;
   --ink-2: #b4c0cc;
   --rule: rgba(255, 255, 255, 0.12);
   --rule-strong: rgba(255, 255, 255, 0.28);
-  --accent: #4d8dff;
+  --accent: #3fa9ff;
   --accent-2: #27e0c4;
   --accent-ink: #04070c;
   --accent-soft: rgba(77, 141, 255, 0.14);

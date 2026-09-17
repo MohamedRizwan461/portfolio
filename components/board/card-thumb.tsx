@@ -85,6 +85,25 @@ export function CardThumb({ thumb, playing = false, large = false, accent = "#4d
           <GithubLogo size={large ? 96 : 48} weight="fill" className="text-ink" aria-hidden />
         </div>
       );
+    case "gearsim":
+      return (
+        <div className="absolute inset-0 flex items-center justify-center gap-3 bg-[radial-gradient(circle_at_30%_30%,var(--surface-2),var(--surface))]">
+          <svg viewBox="-60 -50 160 100" className="h-[70%] w-auto" aria-hidden>
+            <g className="motion-safe:animate-[spin_6s_linear_infinite]" style={{ transformOrigin: "0px 0px" }}>
+              <circle r="40" fill="none" stroke={accent} strokeWidth="10" strokeDasharray="7 6" />
+              <circle r="22" fill={accent} />
+            </g>
+            <g transform="translate(62,0)">
+              <g className="motion-safe:animate-[spin_3s_linear_infinite_reverse]" style={{ transformOrigin: "0px 0px" }}>
+                <circle r="20" fill="none" stroke="var(--ink-2)" strokeWidth="8" strokeDasharray="6 5" />
+              </g>
+            </g>
+          </svg>
+          <span className="font-mono text-3xl font-bold" style={{ color: accent }}>
+            D3
+          </span>
+        </div>
+      );
     case "contact":
       return (
         <div className="absolute inset-0 flex items-center justify-center" style={{ background: `radial-gradient(circle at 30% 20%, ${accent}55, var(--surface) 70%)` }}>
