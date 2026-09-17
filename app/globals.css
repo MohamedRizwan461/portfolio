@@ -51,8 +51,9 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-2);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
+  border-radius: 2px;
 }
 
 a {
@@ -256,6 +257,21 @@ html[data-scheme="light"] .bd-grain {
 .link-u:hover,
 .link-u:focus-visible {
   background-size: 100% 1px;
+}
+
+/* glass falls back to a solid panel when the visitor asks for less transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* images and video never jump the layout */
+img,
+video {
+  max-width: 100%;
 }
 
 /* smooth scroll */

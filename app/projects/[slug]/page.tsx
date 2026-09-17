@@ -7,6 +7,7 @@ import { Mask, Reveal } from "@/components/motion-bits";
 import { VideoFigure } from "@/components/video-figure";
 import { GearSim } from "@/components/gear-sim";
 import { ProjectVisual } from "@/components/project-visual";
+import { ReadProgress } from "@/components/read-progress";
 import { SectionIndex } from "@/components/section-index";
 import { Container, Figure, SpecTable } from "@/components/ui";
 import { projects } from "@/lib/content";
@@ -98,6 +99,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
 
   return (
     <article>
+      <ReadProgress />
       {/* hero */}
       <Container className="pt-24 sm:pt-28">
         <Link href="/projects" className="eyebrow group inline-flex items-center gap-2 no-underline hover:text-ink">
