@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 type Errors = Partial<Record<"name" | "message", string>>;
 
 const field =
-  "mt-2 block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-3 text-lg font-light text-ink transition-colors duration-300 placeholder:text-ink-2 hover:border-[color-mix(in_srgb,var(--ink)_45%,transparent)] focus:border-ink focus:outline-none aria-[invalid=true]:border-[#e5484d]";
+  "mt-2 block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-base font-light text-ink transition-colors duration-300 placeholder:text-ink-2 hover:border-[color-mix(in_srgb,var(--ink)_45%,transparent)] focus:border-ink focus:outline-none aria-[invalid=true]:border-[#e5484d]";
 
 export function ContactForm({ email }: { email: string }) {
   const [errors, setErrors] = useState<Errors>({});
@@ -31,8 +31,8 @@ export function ContactForm({ email }: { email: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-8">
-      <div className="grid gap-8 sm:grid-cols-2">
+    <form onSubmit={onSubmit} noValidate className="grid gap-6">
+      <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="name" className="eyebrow">
             Name
@@ -79,7 +79,7 @@ export function ContactForm({ email }: { email: string }) {
       <div className="flex flex-wrap items-center gap-4">
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-ink px-7 text-[0.9rem] font-medium whitespace-nowrap text-ground transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)] active:scale-[0.98]"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-ink px-6 text-sm font-medium whitespace-nowrap text-ground transition-shadow duration-500 hover:shadow-[0_0_0_5px_color-mix(in_srgb,var(--ink)_12%,transparent)] active:scale-[0.98]"
         >
           Open in email app
         </button>

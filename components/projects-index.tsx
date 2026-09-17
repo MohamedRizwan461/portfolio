@@ -45,17 +45,17 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
               onPointerLeave={() => setHover(null)}
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
-              className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 py-6 no-underline transition-opacity duration-500 sm:py-7"
+              className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 py-5 no-underline transition-opacity duration-500 sm:py-6"
               style={{ opacity: hover !== null && hover !== i ? 0.38 : 1 }}
             >
-              <span className="eyebrow col-span-2 pt-1.5 sm:col-span-1 sm:pt-2">{String(i + 1).padStart(2, "0")}</span>
+              <span className="eyebrow col-span-2 pt-1 sm:col-span-1 sm:pt-1.5">{String(i + 1).padStart(2, "0")}</span>
 
               <span className="col-span-10 sm:col-span-7">
-                <span className="display block text-[clamp(1.35rem,2.2vw,1.9rem)] !tracking-[-0.03em] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2">
+                <span className="display block text-[clamp(1.15rem,1.6vw,1.4rem)] !tracking-[-0.025em] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2">
                   {p.title}
                 </span>
-                <span className="mt-2 line-clamp-2 block max-w-[60ch] text-[0.9rem] leading-relaxed text-ink-2">{p.problem}</span>
-                <span className="mt-4 block font-mono text-[0.7rem] tracking-wide text-ink-2">{p.stack.join("  ·  ")}</span>
+                <span className="mt-1.5 line-clamp-2 block max-w-[62ch] text-[0.88rem] leading-relaxed text-ink-2">{p.problem}</span>
+                <span className="mt-3 block font-mono text-[0.66rem] tracking-wide text-ink-2">{p.stack.join("  ·  ")}</span>
                 <span className="mt-5 block aspect-[16/10] overflow-hidden border border-rule lg:hidden">
                   <ProjectVisual project={p} sizes="100vw" />
                 </span>
@@ -73,8 +73,8 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
                     {p.status}
                   </span>
                 )}
-                <span className="hidden h-10 w-10 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:rotate-45 group-hover:border-ink group-hover:bg-ink group-hover:text-ground sm:flex">
-                  <ArrowUpRight size={16} weight="bold" aria-hidden />
+                <span className="hidden h-9 w-9 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:rotate-45 group-hover:border-ink group-hover:bg-ink group-hover:text-ground sm:flex">
+                  <ArrowUpRight size={14} weight="bold" aria-hidden />
                 </span>
               </span>
             </Link>

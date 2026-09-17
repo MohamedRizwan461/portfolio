@@ -16,7 +16,7 @@ const buttonLook = {
     "bg-[color-mix(in_srgb,var(--ink)_3%,transparent)] text-ink border-rule-strong backdrop-blur hover:border-[color-mix(in_srgb,var(--ink)_45%,transparent)] hover:bg-[color-mix(in_srgb,var(--ink)_7%,transparent)]",
 };
 const buttonBase =
-  "group/btn inline-flex h-12 items-center justify-center gap-2.5 whitespace-nowrap rounded-full border px-6 text-[0.9rem] font-medium no-underline transition-[box-shadow,background-color,border-color,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] [&_svg]:transition-transform [&_svg]:duration-500 hover:[&_svg]:translate-x-0.5";
+  "group/btn inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-5 text-sm font-medium no-underline transition-[box-shadow,background-color,border-color,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] [&_svg]:transition-transform [&_svg]:duration-500 hover:[&_svg]:translate-x-0.5";
 
 type ButtonProps = ComponentProps<typeof Link> & { variant?: keyof typeof buttonLook };
 
@@ -153,18 +153,18 @@ const footerNav = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-24 border-t border-rule">
-      <Container className="pt-16 pb-10 sm:pt-20">
+    <footer className="relative mt-20 border-t border-rule">
+      <Container className="pt-14 pb-8 sm:pt-16">
         <p className="eyebrow">What next</p>
-        <h2 className="display mt-4 max-w-[20ch] text-[clamp(1.9rem,3.6vw,3rem)]">Let&apos;s build something that moves.</h2>
+        <h2 className="display mt-3 max-w-[24ch] text-[clamp(1.5rem,2.4vw,2.1rem)] !tracking-[-0.035em]">Let&apos;s build something that moves.</h2>
         <a
           href={`mailto:${site.email}`}
-          className="link-u mt-6 inline-block text-[clamp(1rem,1.5vw,1.25rem)] font-light tracking-tight text-ink"
+          className="link-u mt-4 inline-block text-[1rem] font-light tracking-tight text-ink"
         >
           {site.email}
         </a>
 
-        <div className="mt-14 grid gap-10 border-t border-rule pt-8 sm:grid-cols-3">
+        <div className="mt-10 grid gap-8 border-t border-rule pt-7 sm:grid-cols-3">
           <div>
             <p className="eyebrow">Navigate</p>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -206,7 +206,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6">
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-5">
           <p className="eyebrow">{site.name}</p>
           <a href="#main" className="eyebrow link-u hover:text-ink">
             Back to top

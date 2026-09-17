@@ -33,9 +33,9 @@ function List({ items }: { items: string[] }) {
   return (
     <ul className="divide-y divide-rule border-y border-rule">
       {items.map((item, i) => (
-        <li key={item} className="grid grid-cols-[2.25rem_1fr] gap-3 py-4">
+        <li key={item} className="grid grid-cols-[2.25rem_1fr] gap-3 py-3.5">
           <span className="pt-1 font-mono text-[0.68rem] text-ink-2">{String(i + 1).padStart(2, "0")}</span>
-          <span className="max-w-[68ch] text-[0.95rem] leading-relaxed text-ink">{item}</span>
+          <span className="max-w-[70ch] text-[0.92rem] leading-relaxed text-ink">{item}</span>
         </li>
       ))}
     </ul>
@@ -48,7 +48,7 @@ function Section({ id, n, title, children }: { id: string; n: number; title: str
       <Reveal>
         <div className="flex items-baseline gap-4">
           <span className="eyebrow">{String(n).padStart(2, "0")}</span>
-          <h2 id={`${id}-h`} className="display text-[clamp(1.3rem,1.8vw,1.65rem)] !tracking-[-0.03em]">
+          <h2 id={`${id}-h`} className="display text-[clamp(1.15rem,1.5vw,1.35rem)] !tracking-[-0.025em]">
             {title}
           </h2>
         </div>
@@ -99,13 +99,13 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
   return (
     <article>
       {/* hero */}
-      <Container className="pt-28 sm:pt-36">
+      <Container className="pt-24 sm:pt-28">
         <Link href="/projects" className="eyebrow group inline-flex items-center gap-2 no-underline hover:text-ink">
           <ArrowLeft size={12} weight="bold" aria-hidden className="transition-transform duration-500 group-hover:-translate-x-1" />
           <span className="link-u">All projects</span>
         </Link>
 
-        <div className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2">
           <Mask>
             <p className="eyebrow">
               {String(index + 1).padStart(2, "0")} <span className="mx-2 opacity-40">/</span> {project.date}
@@ -120,20 +120,20 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           )}
         </div>
 
-        <h1 className="display mt-5 max-w-[22ch] text-[clamp(2.1rem,4.4vw,3.6rem)] leading-[1.04]">
+        <h1 className="display mt-3 max-w-[26ch] text-[clamp(1.75rem,2.6vw,2.4rem)] leading-[1.08] !tracking-[-0.035em]">
           <Mask delay={0.06}>{project.title}</Mask>
         </h1>
 
         <Reveal delay={0.25}>
-          <p className="mt-6 max-w-[58ch] text-lg leading-relaxed font-light text-ink-2 sm:text-xl">{project.problem}</p>
+          <p className="mt-4 max-w-[62ch] text-[0.98rem] leading-relaxed font-light text-ink-2 sm:text-[1.05rem]">{project.problem}</p>
         </Reveal>
 
         <Reveal delay={0.35}>
-          <dl className="mt-10 grid gap-px overflow-hidden border border-rule bg-[var(--rule)] sm:grid-cols-3">
+          <dl className="mt-8 grid gap-px overflow-hidden border border-rule bg-[var(--rule)] sm:grid-cols-3">
             {meta.map((m) => (
-              <div key={m.k} className="bg-ground p-5 sm:p-6">
+              <div key={m.k} className="bg-ground p-4 sm:p-5">
                 <dt className="eyebrow">{m.k}</dt>
-                <dd className={`mt-3 leading-relaxed text-ink ${m.mono ? "font-mono text-[0.78rem]" : "text-[0.95rem]"}`}>{m.v}</dd>
+                <dd className={`mt-2 leading-relaxed text-ink ${m.mono ? "font-mono text-[0.74rem]" : "text-[0.9rem]"}`}>{m.v}</dd>
               </div>
             ))}
           </dl>
@@ -141,7 +141,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       </Container>
 
       {/* the evidence, big */}
-      <Container className="pt-12 sm:pt-14">
+      <Container className="pt-10 sm:pt-12">
         <Reveal>
           {portrait ? (
             <div className="grid items-end gap-8 lg:grid-cols-12">
@@ -183,7 +183,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="eyebrow text-accent">Interactive</p>
-                <h2 id="try-it" className="display mt-3 text-[clamp(1.5rem,2.4vw,2rem)]">
+                <h2 id="try-it" className="display mt-2 text-[clamp(1.3rem,1.8vw,1.6rem)]">
                   Drive it yourself
                 </h2>
               </div>
@@ -197,14 +197,14 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       )}
 
       {/* the case study */}
-      <Container className="grid gap-14 pt-20 sm:pt-24 lg:grid-cols-12 lg:gap-10">
+      <Container className="grid gap-12 pt-16 sm:pt-20 lg:grid-cols-12 lg:gap-10">
         <aside className="hidden lg:col-span-3 lg:block">
           <div className="sticky top-32">
             <SectionIndex sections={toc} />
           </div>
         </aside>
 
-        <div className="space-y-16 lg:col-span-9">
+        <div className="space-y-14 lg:col-span-9">
           {sections.map((s, i) => (
             <Section key={s.id} id={s.id} n={i + 1} title={s.label}>
               <List items={s.items} />
@@ -248,15 +248,15 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       </Container>
 
       {/* next */}
-      <Container className="pt-24">
+      <Container className="pt-20">
         <Link href={`/projects/${next.slug}`} className="group block border-t border-rule pt-10 no-underline">
           <p className="eyebrow">Next project</p>
           <div className="mt-6 flex items-end justify-between gap-6">
-            <span className="display block max-w-[22ch] text-[clamp(1.6rem,3vw,2.5rem)] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
+            <span className="display block max-w-[26ch] text-[clamp(1.4rem,2.2vw,1.9rem)] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
               {next.title}
             </span>
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:border-ink group-hover:bg-ink group-hover:text-ground">
-              <ArrowRight size={20} weight="light" aria-hidden />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink transition-all duration-500 group-hover:border-ink group-hover:bg-ink group-hover:text-ground">
+              <ArrowRight size={18} weight="light" aria-hidden />
             </span>
           </div>
         </Link>
