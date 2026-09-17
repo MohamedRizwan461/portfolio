@@ -8,6 +8,8 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/mohamed-rizwan-ameer-john-3a459a231/",
   github: "https://github.com/MohamedRizwan461",
   location: "Chicago, IL. Open to relocation.",
+  /** what he is actually looking for, said plainly on the board */
+  ask: "Open to embedded software and robotics roles · Chicago, open to relocation",
   resumePdf: "/resume/Mohamed-Rizwan-Ameer-John-Resume.pdf",
 };
 

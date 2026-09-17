@@ -115,7 +115,7 @@ export function BoardExperience() {
   const palette = useMemo(() => ({ ...tokens, finish: theme.finish }), [tokens, theme.finish]);
   const route = modeConfig.route;
 
-  // first visit powers on and asks who is operating; returning visitors keep their mode
+  // the film plays once, for first-time visitors only; everyone lands on the board
   useEffect(() => {
     lastInput.current = Date.now();
     setSound(soundEnabled());
@@ -133,7 +133,18 @@ export function BoardExperience() {
     } catch {}
     setShowPalettes(params.has("themes"));
     if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
-    if (replay || !saved) setIntro("gate");
+    else setMode("recruiter");
+    let seen = false;
+    try {
+      seen = window.localStorage.getItem("riz-seen-intro") === "1";
+    } catch {}
+    if (replay || !seen) {
+      setIntro("gate");
+      // it plays once: a refresh halfway through should not start it again
+      try {
+        window.localStorage.setItem("riz-seen-intro", "1");
+      } catch {}
+    }
   }, []);
 
   // the whole site, backdrop included, takes the theme and the operator's colour
@@ -210,6 +221,9 @@ export function BoardExperience() {
   );
 
   const selectMode = useCallback((id: ModeId) => {
+    try {
+      window.localStorage.setItem("riz-seen-intro", "1");
+    } catch {}
     const m = modes.find((x) => x.id === id)!;
     setMode(id);
     setIntro(null);
@@ -288,6 +302,7 @@ export function BoardExperience() {
           <BootIntro
             key={intro}
             start={intro}
+            afterIntro={intro === "gate" ? "close" : "select"}
             current={mode}
             accents={tokens.accents}
             onSelect={selectMode}
@@ -407,8 +422,17 @@ export function BoardExperience() {
           <motion.p
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-4 flex max-w-[34ch] items-start gap-2.5 text-[0.82rem] leading-relaxed text-ink-2"
+          >
+            <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: accent }} />
+            {site.ask}
+          </motion.p>
+          <motion.p
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.35 }}
-            className="mt-4 hidden max-w-[40ch] text-[0.95rem] leading-relaxed font-light text-ink-2 2xl:block"
+            className="mt-3 hidden max-w-[40ch] text-[0.95rem] leading-relaxed font-light text-ink-2 2xl:block"
           >
             {modeConfig.sub}
           </motion.p>

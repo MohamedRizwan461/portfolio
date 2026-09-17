@@ -98,13 +98,15 @@ function ChicagoClock() {
 type Props = {
   /** "gate" plays the intro from the Enter button; "select" goes straight to operators */
   start: "gate" | "select";
+  /** what happens when the film ends: offer the views, or just open the board */
+  afterIntro?: "select" | "close";
   current?: ModeId | null;
   accents?: Record<ModeId, string>;
   onSelect: (mode: ModeId) => void;
   onDismiss?: () => void;
 };
 
-export function BootIntro({ start, current, accents, onSelect, onDismiss }: Props) {
+export function BootIntro({ start, afterIntro = "select", current, accents, onSelect, onDismiss }: Props) {
   const reduce = useReducedMotion() ?? false;
   const [phase, setPhase] = useState<"gate" | "show" | "select">(start);
   const [cue, setCue] = useState<Cue>(start === "gate" ? "idle" : "dust");
@@ -143,6 +145,16 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
   };
   useEffect(() => clearTimers, []);
 
+  // skipping never traps anyone: it opens the board straight away
+  const skip = useCallback(() => {
+    clearTimers();
+    if (afterIntro === "close") return onSelect("recruiter");
+    setScene(-1);
+    setNamed(false);
+    setCue("dust");
+    setPhase("select");
+  }, [afterIntro, onSelect]);
+
   const toSelect = useCallback(() => {
     clearTimers();
     setScene(-1);
@@ -176,9 +188,9 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
         setCue("dust");
         playWhoosh(1);
       });
-      at(SELECT_AT, () => setPhase("select"));
+      at(SELECT_AT, () => (afterIntro === "close" ? onSelect("recruiter") : setPhase("select")));
     },
-    [reduce, toSelect],
+    [reduce, toSelect, afterIntro, onSelect],
   );
 
   const choose = useCallback(
@@ -195,9 +207,10 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
     const onKey = (e: KeyboardEvent) => {
       if (phase === "gate") {
         if (e.key === "Enter" && pct >= 100) enter(soundEnabled());
+        if (e.key === "Escape") skip();
         return;
       }
-      if (phase === "show") return toSelect();
+      if (phase === "show") return skip();
       const byKey = modes.find((m) => m.key === e.key);
       if (byKey) return choose(byKey.id);
       if (e.key === "ArrowRight" || e.key === "ArrowDown") setFocus((f) => (f + 1) % modes.length);
@@ -207,7 +220,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, pct, focus, enter, choose, toSelect, onDismiss]);
+  }, [phase, pct, focus, enter, choose, skip, toSelect, onDismiss]);
 
   const hud = "font-mono text-[0.62rem] tracking-[0.28em] uppercase sm:text-[0.68rem]";
 
@@ -241,15 +254,15 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
           <span key={c} aria-hidden className={`pointer-events-none absolute h-4 w-4 border-white/30 sm:h-5 sm:w-5 ${c}`} />
         ))}
 
-      {/* top line */}
-      <div className="absolute inset-x-0 top-0 flex items-start justify-between px-8 pt-8 sm:px-10">
+      {/* top line, above the gate so Skip is always clickable */}
+      <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between px-8 pt-8 sm:px-10">
         <div className={hud}>
           <p className="text-white/70">Mohamed Rizwan Ameer John</p>
           <p className="mt-1.5 hidden text-white/35 sm:block">Robotics · Embedded · Autonomy</p>
         </div>
         <div className="flex items-center gap-5">
-          {phase === "show" && (
-            <button type="button" onClick={toSelect} className={`${hud} whitespace-nowrap text-white/55 transition-colors hover:text-white`}>
+          {(phase === "show" || phase === "gate") && (
+            <button type="button" onClick={skip} className={`${hud} whitespace-nowrap text-white/55 transition-colors hover:text-white`}>
               Skip intro
             </button>
           )}
@@ -328,7 +341,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
         {phase === "gate" && (
           <motion.div
             key="gate"
-            className="absolute inset-0 flex flex-col items-center justify-center"
+            className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center [&>*]:pointer-events-auto"
             exit={{ opacity: 0, scale: 0.92, filter: "blur(8px)", transition: { duration: 0.45, ease: EASE } }}
           >
             <AnimatePresence mode="wait">
