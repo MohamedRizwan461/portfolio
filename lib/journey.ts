@@ -1,5 +1,7 @@
 export type ChapterMedia = {
   kind: "image" | "video" | "robot";
+  /** where to anchor a crop, for footage with bars baked in */
+  position?: string;
   src: string;
   poster?: string;
   width?: number;
@@ -79,6 +81,10 @@ export const chapters: Chapter[] = [
       kind: "video",
       src: "/video/knee-actuator-working.mp4",
       poster: "/video/knee-actuator-working-poster.jpg",
+      // the clip is portrait footage inside a square file: show only the footage
+      width: 680,
+      height: 1080,
+      position: "60% 50%",
       alt: "The knee actuator running on a leg",
       caption: "The knee actuator running on the bench.",
       fit: "cover",
@@ -143,6 +149,8 @@ export const chapters: Chapter[] = [
     media: {
       kind: "video",
       src: "/video/robot-goal-run.mp4",
+      width: 848,
+      height: 480,
       poster: "/video/robot-goal-run-poster.jpg",
       alt: "The robot navigating around a bottle to a goal marker",
       caption: "My robot finding its way to the goal marker.",

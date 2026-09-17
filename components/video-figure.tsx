@@ -26,7 +26,7 @@ export function VideoFigure({
 }) {
   const reduce = useReducedMotion();
   return (
-    <figure className={`m-0 ${className}`}>
+    <figure className={`m-0 ${video.portrait ? "" : "mx-auto max-w-[848px]"} ${className}`}>
       <div className={`overflow-hidden border border-rule bg-black ${video.portrait ? "aspect-[3/4]" : ""}`}>
         <video
           src={video.src}

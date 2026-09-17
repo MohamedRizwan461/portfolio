@@ -135,7 +135,7 @@ export function SiteHeader() {
                     <Link href={item.href} className="flex items-baseline gap-4 py-4 no-underline">
                       <span className="eyebrow w-6">{String(i + 1).padStart(2, "0")}</span>
                       <Mask delay={0.05 + i * 0.06} className="flex-1">
-                        <span className="display text-[2.6rem] text-ink">{item.label}</span>
+                        <span className="display text-[2rem] text-ink">{item.label}</span>
                       </Mask>
                     </Link>
                   </li>

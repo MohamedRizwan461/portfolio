@@ -398,7 +398,7 @@ export function BoardExperience() {
               {modeConfig.kicker}
             </p>
           </Mask>
-          <h1 className="display mt-4 text-[1.85rem] sm:text-[2.6rem] lg:text-[2.9rem] [@media(max-height:860px)]:lg:text-[2.6rem]">
+          <h1 className="display mt-4 text-[1.6rem] sm:text-[2.1rem] lg:text-[2.4rem] [@media(max-height:860px)]:lg:text-[2.15rem]">
             <Mask delay={0.08}>{modeConfig.headline}</Mask>
           </h1>
           <motion.p

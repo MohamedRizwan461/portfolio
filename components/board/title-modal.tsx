@@ -79,7 +79,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
               <CardThumb thumb={card.thumb} playing={!reduce} large accent={accent} />
               <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[color-mix(in_srgb,var(--surface)_25%,transparent)] to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-                <h2 className="display max-w-[20ch] text-3xl sm:text-5xl">{card.title}</h2>
+                <h2 className="display max-w-[22ch] text-2xl sm:text-4xl">{card.title}</h2>
                 <div className="mt-6 flex flex-wrap gap-2">
                   {card.cta.external || card.cta.download ? (
                     <a
@@ -112,7 +112,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
                   ))}
                   <span className="font-mono text-[0.7rem] text-ink-2">{card.meta}</span>
                 </p>
-                <p className="mt-5 text-lg leading-relaxed font-light text-ink sm:text-xl">{card.blurb}</p>
+                <p className="mt-5 text-base leading-relaxed font-light text-ink sm:text-lg">{card.blurb}</p>
               </div>
               <div className="text-sm text-ink-2 sm:border-l sm:border-rule sm:pl-5">
                 <p className="eyebrow">Riz</p>
@@ -128,7 +128,7 @@ export function TitleModal({ card, accent, onClose }: { card: Card | null; accen
                 <ol className="mt-3 divide-y divide-rule">
                   {card.episodes.map((ep, i) => (
                     <li key={ep.title} className="grid grid-cols-[3.25rem_1fr] gap-3 py-5">
-                      <span className="display text-3xl text-ink-2 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="display text-2xl text-ink-2 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                       <div>
                         <p className="font-medium text-ink">{ep.title}</p>
                         <p className="mt-1 text-sm leading-relaxed text-ink-2">{ep.text}</p>

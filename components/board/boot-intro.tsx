@@ -293,7 +293,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
               <Reveal className={`${hud} text-[#7cc4ff]`}>
                 {SCENES[scene].n} <span className="text-white/35">/ 03</span>
               </Reveal>
-              <Reveal delay={0.06} className="mt-2 text-[clamp(1.75rem,4vw,3rem)] leading-[1.05] font-light tracking-tight">
+              <Reveal delay={0.06} className="mt-2 text-[clamp(1.4rem,2.6vw,2.1rem)] leading-[1.05] font-light tracking-tight">
                 {SCENES[scene].title}
               </Reveal>
               <Reveal delay={0.14} className="mt-1 text-sm text-white/55 sm:text-base">
@@ -377,7 +377,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
             <div className="w-full max-w-5xl text-center">
               <Reveal className={`${hud} text-white/45`}>Choose your view</Reveal>
               <Reveal delay={0.08}>
-                <h1 className="mt-3 text-[clamp(2.25rem,5vw,4rem)] leading-[1.05] font-light tracking-tight">Who&apos;s operating?</h1>
+                <h1 className="mt-3 text-[clamp(1.9rem,3.4vw,2.9rem)] leading-[1.05] font-light tracking-tight">Who&apos;s operating?</h1>
               </Reveal>
               <Reveal delay={0.16} className="mt-3 text-white/55">
                 The board, the robot and the work you see change with it.

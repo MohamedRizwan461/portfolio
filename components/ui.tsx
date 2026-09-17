@@ -117,7 +117,7 @@ export function Figure({
   compact?: boolean;
 }) {
   return (
-    <figure className="m-0">
+    <figure className="m-0 mx-auto" style={figure.src && figure.width ? { maxWidth: figure.width } : undefined}>
       <div className="overflow-hidden border border-rule">
         {figure.kind === "canFrame" ? (
           <CanFrame />
@@ -153,18 +153,18 @@ const footerNav = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-32 border-t border-rule">
-      <Container className="pt-20 pb-10 sm:pt-28">
+    <footer className="relative mt-24 border-t border-rule">
+      <Container className="pt-16 pb-10 sm:pt-20">
         <p className="eyebrow">What next</p>
-        <h2 className="display mt-5 max-w-[14ch] text-[clamp(2.75rem,8vw,6.5rem)]">Let&apos;s build something that moves.</h2>
+        <h2 className="display mt-4 max-w-[20ch] text-[clamp(1.9rem,3.6vw,3rem)]">Let&apos;s build something that moves.</h2>
         <a
           href={`mailto:${site.email}`}
-          className="link-u mt-10 inline-block text-[clamp(1.15rem,2.6vw,2rem)] font-light tracking-tight text-ink"
+          className="link-u mt-6 inline-block text-[clamp(1rem,1.5vw,1.25rem)] font-light tracking-tight text-ink"
         >
           {site.email}
         </a>
 
-        <div className="mt-20 grid gap-10 border-t border-rule pt-10 sm:grid-cols-3">
+        <div className="mt-14 grid gap-10 border-t border-rule pt-8 sm:grid-cols-3">
           <div>
             <p className="eyebrow">Navigate</p>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -206,7 +206,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6">
           <p className="eyebrow">{site.name}</p>
           <a href="#main" className="eyebrow link-u hover:text-ink">
             Back to top

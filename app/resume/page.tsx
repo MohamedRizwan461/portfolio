@@ -14,17 +14,17 @@ export const metadata: Metadata = {
 
 export default function ResumePage() {
   return (
-    <Container className="pt-36 sm:pt-44">
+    <Container className="pt-28 sm:pt-36">
       <Mask>
         <p className="eyebrow">
           Document <span className="mx-2 opacity-40">/</span> 2 pages <span className="mx-2 opacity-40">/</span> PDF
         </p>
       </Mask>
-      <div className="mt-6 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-        <h1 className="display text-[clamp(3.75rem,12vw,10rem)] leading-[0.92]">
+      <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <h1 className="display text-[clamp(2.5rem,5.2vw,4.25rem)]">
           <Mask delay={0.08}>Resume</Mask>
         </h1>
-        <Reveal delay={0.3} className="flex flex-wrap gap-3 lg:pb-4">
+        <Reveal delay={0.3} className="flex flex-wrap gap-3 lg:pb-1">
           <ButtonAnchor href={site.resumePdf} download>
             <DownloadSimple size={16} weight="bold" aria-hidden /> Download resume
           </ButtonAnchor>
@@ -34,7 +34,7 @@ export default function ResumePage() {
         </Reveal>
       </div>
 
-      <Reveal delay={0.4} className="mt-16 border-t border-rule pt-10">
+      <Reveal delay={0.4} className="mt-10 border-t border-rule pt-8">
         {/* Desktop: the browser's own PDF viewer, framed like a document on a desk */}
         <div className="hidden border border-rule bg-[var(--surface)] p-2 shadow-[0_50px_120px_-50px_rgba(0,0,0,0.9)] md:block">
           <iframe src={`${site.resumePdf}#view=FitH`} title="Resume PDF viewer" className="block h-[82vh] min-h-[640px] w-full bg-white" />

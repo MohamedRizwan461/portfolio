@@ -14,32 +14,63 @@ const RobotSelf = dynamic(() => import("./robot-self"), { ssr: false });
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-function Media({ media, className = "", sizes }: { media: ChapterMedia; className?: string; sizes: string }) {
+/** One photo or clip at its real proportions, caption laid over the corner. */
+function Frame({ media, sizes }: { media: ChapterMedia; sizes: string }) {
   const reduce = useReducedMotion();
-  const fit = media.fit === "cover" ? "object-cover" : "object-contain";
-  const doc = media.fit !== "cover";
+  const w = media.width ?? 1280;
+  const h = media.height ?? 720;
   return (
-    <figure className={`m-0 flex min-h-0 flex-col ${className}`}>
-      <div className={`relative min-h-0 flex-1 overflow-hidden border border-rule ${doc ? "bg-white/95 p-2" : "bg-black"}`}>
-        {media.kind === "video" ? (
-          <video
-            src={media.src}
-            poster={media.poster}
-            aria-label={media.alt}
-            autoPlay={!reduce}
-            muted
-            loop
-            playsInline
-            className={`absolute inset-0 h-full w-full ${fit}`}
-          />
-        ) : media.src.endsWith(".webp") ? (
-          <img src={media.src} alt={media.alt} className={`absolute inset-0 h-full w-full ${fit}`} />
-        ) : (
-          <Image src={media.src} alt={media.alt} fill sizes={sizes} className={`${fit} ${doc ? "p-2" : ""}`} />
-        )}
-      </div>
-      <figcaption className="mt-1.5 line-clamp-1 text-xs text-ink-2">{media.caption}</figcaption>
+    <figure className="relative m-0 w-full overflow-hidden border border-rule bg-black" style={{ aspectRatio: `${w} / ${h}` }}>
+      {media.kind === "video" ? (
+        <video
+          src={media.src}
+          poster={media.poster}
+          aria-label={media.alt}
+          autoPlay={!reduce}
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+          style={media.position ? { objectPosition: media.position } : undefined}
+        />
+      ) : media.src.endsWith(".webp") ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={media.src} alt={media.alt} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <Image src={media.src} alt={media.alt} fill sizes={sizes} className="object-cover" />
+      )}
+      <figcaption className="absolute bottom-2.5 left-2.5 max-w-[calc(100%-1.25rem)] truncate rounded-full bg-black/60 px-3 py-1 text-[0.68rem] text-white/85 backdrop-blur">
+        {media.caption}
+      </figcaption>
     </figure>
+  );
+}
+
+/**
+ * One or two frames stacked into the space available, sized so nothing is
+ * cropped, stretched or shown larger than its own pixels.
+ */
+function Evidence({ items, sizes }: { items: ChapterMedia[]; sizes: string }) {
+  const sum = items.reduce((acc, m) => acc + (m.height ?? 720) / (m.width ?? 1280), 0);
+  const maxW = Math.min(...items.map((m) => m.width ?? 1280));
+  const gap = 12 * (items.length - 1);
+  const first = items[0];
+  const ambient = first.kind === "image" && !first.src.endsWith(".webp") ? first.src : undefined;
+  return (
+    <div className="relative flex h-full min-h-0 w-full items-center justify-center lg:[container-type:size]">
+      {ambient && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img aria-hidden src={ambient} alt="" className="pointer-events-none absolute inset-[12%] h-[76%] w-[76%] object-cover opacity-20 blur-3xl" />
+      )}
+      <div
+        className="relative flex w-full flex-col gap-3 lg:w-[min(100cqw,calc((100cqh_-_var(--gap))/var(--sum)),var(--maxw))]"
+        style={{ "--sum": sum, "--gap": `${gap}px`, "--maxw": `${maxW}px`, maxWidth: `${maxW}px` } as React.CSSProperties}
+      >
+        {items.map((m) => (
+          <Frame key={m.src} media={m} sizes={sizes} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -189,7 +220,7 @@ export function ChapterViewer() {
                 <span className="mx-2 opacity-40">/</span>
                 {c.years}
               </p>
-              <h2 className="display mt-4 text-[clamp(2rem,3.6vw,3.25rem)]">
+              <h2 className="display mt-3 text-[clamp(1.6rem,2.5vw,2.25rem)] !tracking-[-0.035em]">
                 <Mask>{c.title}</Mask>
               </h2>
               <div className="mt-5 space-y-3 text-[0.98rem] leading-relaxed font-light text-ink-2">
@@ -230,14 +261,7 @@ export function ChapterViewer() {
               ) : c.media.fit === "contain" ? (
                 <Documents main={c.media} extra={c.extra} />
               ) : (
-                <>
-                  <Media
-                    media={c.media}
-                    className={c.extra ? "basis-[58%]" : "flex-1"}
-                    sizes="(min-width: 1024px) 520px, 90vw"
-                  />
-                  {c.extra && <Media media={c.extra} className="basis-[42%]" sizes="(min-width: 1024px) 320px, 45vw" />}
-                </>
+                <Evidence items={c.extra ? [c.media, c.extra] : [c.media]} sizes="(min-width: 1024px) 620px, 90vw" />
               )}
             </div>
           </motion.article>

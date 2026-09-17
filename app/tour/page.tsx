@@ -22,7 +22,7 @@ const slides: Slide[] = [
           <p className="eyebrow">
             <Typewriter text="> boot riz ... sensors ok, actuators ok, coffee ok" />
           </p>
-          <h1 className="mt-4 display text-[clamp(2.5rem,5.4vw,4.75rem)]">
+          <h1 className="mt-4 display text-[clamp(2.1rem,4vw,3.4rem)]">
             Mohamed Rizwan
             <span className="block text-ink-2">Ameer John</span>
           </h1>
@@ -63,7 +63,7 @@ const slides: Slide[] = [
     label: "The path",
     content: (
       <div className="mx-auto w-full max-w-6xl">
-        <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
+        <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
           Biology first. Then the machines.
         </h2>
         <p className="mt-4 max-w-[58ch] text-ink-2">
@@ -80,7 +80,7 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
-          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
+          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
             No renders were harmed.
             <span className="block text-ink-2">It actually moves.</span>
           </h2>
@@ -131,7 +131,7 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
+          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
             Selected work
           </h2>
           <Link
@@ -192,7 +192,7 @@ const slides: Slide[] = [
     content: (
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-6">
-          <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">
+          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
             Three filed patents, on record
           </h2>
           <p className="mt-4 max-w-[46ch] text-ink-2">
@@ -233,7 +233,7 @@ const slides: Slide[] = [
     label: "What I do",
     content: (
       <div className="mx-auto w-full max-w-6xl">
-        <h2 className="display text-[clamp(2.25rem,4.6vw,3.75rem)]">What I do</h2>
+        <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">What I do</h2>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {strengths.map((s) => (
             <li key={s.title} className="panel overflow-hidden">
@@ -268,7 +268,7 @@ const slides: Slide[] = [
     label: "Contact",
     content: (
       <div className="mx-auto w-full max-w-4xl text-center">
-        <h2 className="display text-[clamp(2.5rem,6vw,4.75rem)]">
+        <h2 className="display text-[clamp(2rem,3.8vw,3.1rem)]">
           Ping me. I respond faster
           <span className="block text-ink-2">than a bus timeout.</span>
         </h2>
