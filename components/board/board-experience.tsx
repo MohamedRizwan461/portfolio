@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
+  CaretDown,
   DownloadSimple,
   EnvelopeSimple,
   GithubLogo,
@@ -17,7 +18,9 @@ import {
   X,
 } from "@phosphor-icons/react/dist/ssr";
 import { site } from "@/lib/content";
+import { MODE_STORAGE_KEY, modes, type ModeId } from "@/lib/modes";
 import { groupColor, groupLabel, stations, type Station } from "@/lib/stations";
+import { BootIntro } from "./boot-intro";
 
 const BoardScene = dynamic(() => import("./board-scene"), {
   ssr: false,
@@ -72,12 +75,23 @@ export function BoardExperience() {
   const [visited, setVisited] = useState<Set<string>>(() => new Set(["biology"]));
   const userDriven = useRef(false);
   const lastInput = useRef(0);
-  const autoIndex = useRef(0);
+  const autoIndex = useRef(-1);
   const parkedAt = useRef<string | null>("biology");
+  const [mode, setMode] = useState<ModeId | null>(null);
+  const [intro, setIntro] = useState<"boot" | "menu" | null>(null);
+  const modeConfig = modes.find((m) => m.id === mode) ?? null;
+  const route = modeConfig?.route ?? stations.map((s) => s.id);
 
-  // give the visitor a moment before the autopilot takes over
+  // first visit boots up and asks who is here; returning visitors keep their mode
   useEffect(() => {
     lastInput.current = Date.now();
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem(MODE_STORAGE_KEY);
+    } catch {}
+    const replay = new URLSearchParams(window.location.search).has("boot");
+    if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
+    if (replay || !saved) setIntro("boot");
   }, []);
 
   const pick = useCallback((id: string) => {
@@ -101,24 +115,49 @@ export function BoardExperience() {
     else setActive(id);
   }, []);
 
-  // idle autopilot: the robot tours the board on its own until someone takes the wheel
+  const selectMode = useCallback(
+    (id: ModeId) => {
+      const m = modes.find((x) => x.id === id)!;
+      setMode(id);
+      setIntro(null);
+      try {
+        window.localStorage.setItem(MODE_STORAGE_KEY, id);
+      } catch {}
+      autoIndex.current = 0;
+      if (m.openFirst) {
+        pick(m.route[0]);
+      } else {
+        // curious: hand the wheel to the autopilot right away
+        userDriven.current = false;
+        lastInput.current = 0;
+        setPanel(null);
+        parkedAt.current = null;
+        setActive(m.route[0]);
+        setDriveTo(m.route[0]);
+      }
+    },
+    [pick],
+  );
+
+  // idle autopilot: the robot tours this visitor's route until someone takes the wheel
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || intro) return;
     const id = setInterval(() => {
       const idle = Date.now() - lastInput.current;
       if (panel || idle < 9000) return;
       userDriven.current = false;
-      autoIndex.current = (autoIndex.current + 1) % stations.length;
-      const next = stations[autoIndex.current].id;
+      autoIndex.current = (autoIndex.current + 1) % route.length;
+      const next = route[autoIndex.current];
       parkedAt.current = null;
       setActive(next);
       setDriveTo(next);
     }, 4200);
     return () => clearInterval(id);
-  }, [panel, reduce]);
+  }, [panel, reduce, intro, route]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (intro) return;
       if (e.key === "Escape") {
         setPanel(null);
         return;
@@ -132,13 +171,27 @@ export function BoardExperience() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active, pick]);
+  }, [active, pick, intro]);
 
   const panelStation = stations.find((s) => s.id === panel) ?? null;
+  const dimmed = new Set(
+    modeConfig && modeConfig.highlight.length ? stations.filter((s) => !modeConfig.highlight.includes(s.id)).map((s) => s.id) : [],
+  );
   const groups = Object.keys(groupLabel) as Station["group"][];
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
+      <AnimatePresence>
+        {intro && (
+          <BootIntro
+            key={intro}
+            start={intro}
+            current={mode}
+            onSelect={selectMode}
+            onDismiss={mode ? () => setIntro(null) : undefined}
+          />
+        )}
+      </AnimatePresence>
       {/* the board */}
       <div className="absolute inset-0 isolate z-0" onPointerDown={() => (lastInput.current = Date.now())}>
         <BoardScene
@@ -146,6 +199,7 @@ export function BoardExperience() {
           hovered={hovered}
           active={active}
           visited={visited}
+          dimmed={dimmed}
           reduce={reduce}
           compact={compact}
           onHover={setHovered}
@@ -162,6 +216,16 @@ export function BoardExperience() {
             <span className="text-sm text-ink-2">Mohamed Rizwan</span>
           </Link>
           <BusStatus />
+          {modeConfig && (
+            <button
+              type="button"
+              onClick={() => setIntro("menu")}
+              className="ease flex w-fit items-center gap-1.5 border border-rule bg-ground/60 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-ink-2 backdrop-blur hover:border-accent hover:text-accent"
+            >
+              MODE <span className="text-accent-2">{modeConfig.label.toUpperCase()}</span>
+              <CaretDown size={10} aria-hidden />
+            </button>
+          )}
         </div>
         <nav aria-label="Primary" className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5">
           <Link
@@ -180,7 +244,9 @@ export function BoardExperience() {
           <a
             href={site.resumePdf}
             download
-            className="ease flex items-center gap-1.5 border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink no-underline hover:border-accent-2 hover:bg-accent-2"
+            className={`ease relative flex items-center gap-1.5 border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink no-underline hover:border-accent-2 hover:bg-accent-2 ${
+              modeConfig?.glowResume ? "shadow-[0_0_0_0_rgba(77,141,255,0.7)] motion-safe:animate-[resume-glow_2.2s_ease-out_infinite]" : ""
+            }`}
           >
             <DownloadSimple size={14} aria-hidden /> Resume
           </a>

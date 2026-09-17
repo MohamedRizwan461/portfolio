@@ -16,6 +16,7 @@ export type SceneProps = {
   hovered: string | null;
   active: string | null;
   visited: Set<string>;
+  dimmed: Set<string>;
   reduce: boolean;
   compact: boolean;
   onHover: (id: string | null) => void;
@@ -272,6 +273,7 @@ function Chip({
   hovered,
   active,
   visited,
+  dim,
   compact,
   onHover,
   onPick,
@@ -280,6 +282,7 @@ function Chip({
   hovered: boolean;
   active: boolean;
   visited: boolean;
+  dim: boolean;
   compact: boolean;
   onHover: (id: string | null) => void;
   onPick: (id: string) => void;
@@ -291,7 +294,7 @@ function Chip({
 
   useFrame(({ clock }, delta) => {
     if (pad.current) {
-      const base = lit ? 0.55 : visited ? 0.28 : 0.14;
+      const base = lit ? 0.55 : dim ? 0.03 : visited ? 0.28 : 0.14;
       pad.current.opacity =
         base + Math.sin(clock.getElapsedTime() * 2 + station.x) * 0.05;
     }
@@ -397,7 +400,7 @@ function Chip({
         >
           <div
             className={`whitespace-nowrap text-center font-sans transition-all duration-300 select-none ${lit ? "scale-110" : ""}`}
-            style={{ color: lit ? color : "rgba(238,242,246,0.8)" }}
+            style={{ color: lit ? color : dim ? "rgba(238,242,246,0.3)" : "rgba(238,242,246,0.8)" }}
           >
             <div className="text-[13px] font-semibold tracking-tight">
               {station.title}
@@ -608,6 +611,7 @@ export default function BoardScene(props: SceneProps) {
             hovered={props.hovered === s.id}
             active={props.active === s.id}
             visited={props.visited.has(s.id)}
+            dim={props.dimmed.has(s.id)}
             compact={compact}
             onHover={props.onHover}
             onPick={props.onPick}
