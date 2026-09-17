@@ -2,13 +2,14 @@
 
 import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Html, OrbitControls } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { BUS_Z, groupColor, stations, type Station } from "@/lib/stations";
 import { RobotModel, type Accessory } from "./robot-model";
+import { DEFAULT_PALETTE, type Palette } from "@/lib/palettes";
 
-const COPPER = "#c7a25c";
-const MASK = "#16414a";
+/** board colours come from the palette being tried on */
+const PaletteCtx = createContext<Palette>(DEFAULT_PALETTE);
 const BOARD_W = 24;
 const BOARD_D = 13;
 
@@ -20,6 +21,7 @@ export type SceneProps = {
   dimmed: Set<string>;
   accent: string;
   accessory: Accessory;
+  palette: Palette;
   reduce: boolean;
   compact: boolean;
   onHover: (id: string | null) => void;
@@ -40,6 +42,7 @@ function Trace({
   width?: number;
   glow?: number;
 }) {
+  const COPPER = useContext(PaletteCtx).copper;
   const [x1, z1] = from;
   const [x2, z2] = to;
   const len = Math.hypot(x2 - x1, z2 - z1);
@@ -62,6 +65,7 @@ function Trace({
 }
 
 function Via({ x, z }: { x: number; z: number }) {
+  const COPPER = useContext(PaletteCtx).copper;
   return (
     <mesh position={[x, 0.02, z]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[0.07, 0.15, 20]} />
@@ -101,6 +105,7 @@ function useDecorTraces() {
 }
 
 function Board() {
+  const { board: MASK, boardEdge, copper: COPPER } = useContext(PaletteCtx);
   const decor = useDecorTraces();
   return (
     <group>
@@ -112,7 +117,7 @@ function Board() {
       {/* board edge highlight */}
       <mesh position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[BOARD_W - 0.3, BOARD_D - 0.3]} />
-        <meshBasicMaterial color="#1c4d57" transparent opacity={0.55} />
+        <meshBasicMaterial color={boardEdge} transparent opacity={0.55} />
       </mesh>
 
       {/* mounting holes */}
@@ -534,16 +539,18 @@ export default function BoardScene(props: SceneProps) {
       onCreated={() => setReady(true)}
       onPointerMissed={() => props.onHover(null)}
     >
-      <fog attach="fog" args={["#0c1422", compact ? 40 : 34, compact ? 80 : 64]} />
+      <fog attach="fog" args={[props.palette.ground, compact ? 40 : 34, compact ? 80 : 64]} />
       <ambientLight intensity={1.05} />
       <directionalLight position={[6, 14, 8]} intensity={2.1} />
-      <hemisphereLight args={["#cfe0ff", "#0c1422", 0.55]} />
+      <hemisphereLight args={["#cfe0ff", props.palette.ground, 0.55]} />
       <pointLight position={[-8, 6, -4]} intensity={30} color={props.accent} distance={26} />
       <pointLight position={[8, 6, 5]} intensity={18} color="#27e0c4" distance={24} />
 
       {/* portrait screens get the board turned so time runs top to bottom */}
       <group>
-        <Board />
+        <PaletteCtx.Provider value={props.palette}>
+          <Board />
+        </PaletteCtx.Provider>
         <Signals reduce={props.reduce} accent={props.accent} />
         {stations.map((s) => (
           <Chip

@@ -20,6 +20,7 @@ import {
 import { cards, type Card } from "@/lib/cards";
 import { site } from "@/lib/content";
 import { MODE_STORAGE_KEY, modes, type ModeId } from "@/lib/modes";
+import { DEFAULT_PALETTE, PALETTE_STORAGE_KEY, palettes, type Palette } from "@/lib/palettes";
 import { markStationSeen } from "@/lib/progress";
 import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { stations } from "@/lib/stations";
@@ -99,13 +100,16 @@ export function BoardExperience() {
   const [sound, setSound] = useState(true);
   const [hint, setHint] = useState(true);
   const [seenTick, setSeenTick] = useState(0);
+  const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
+  const [showPalettes, setShowPalettes] = useState(false);
+  const [palettesOpen, setPalettesOpen] = useState(true);
   const userDriven = useRef(false);
   const lastInput = useRef(0);
   const autoIndex = useRef(0);
   const parkedAt = useRef<string | null>("biology");
 
   const modeConfig = modes.find((m) => m.id === mode) ?? modes[0];
-  const accent = modeConfig.accent;
+  const accent = palette.accents[modeConfig.id];
   const route = modeConfig.route;
 
   // first visit powers on and asks who is operating; returning visitors keep their mode
@@ -116,7 +120,14 @@ export function BoardExperience() {
     try {
       saved = window.localStorage.getItem(MODE_STORAGE_KEY);
     } catch {}
-    const replay = new URLSearchParams(window.location.search).has("boot");
+    const params = new URLSearchParams(window.location.search);
+    const replay = params.has("boot");
+    // palette trial: available locally or with ?palettes
+    try {
+      const savedPalette = palettes.find((pl) => pl.id === window.localStorage.getItem(PALETTE_STORAGE_KEY));
+      if (savedPalette) setPalette(savedPalette);
+    } catch {}
+    setShowPalettes(params.has("palettes") || window.location.hostname === "localhost");
     if (saved && modes.some((m) => m.id === saved)) setMode(saved as ModeId);
     if (replay || !saved) setIntro("gate");
   }, []);
@@ -127,12 +138,33 @@ export function BoardExperience() {
     root.setProperty("--accent", accent);
     root.setProperty("--accent-soft", hexToRgba(accent, 0.14));
     root.setProperty("--field-a", hexToRgba(accent, 0.55));
+    root.setProperty("--field-b", palette.fieldB);
+    root.setProperty("--ground", palette.ground);
     return () => {
-      root.removeProperty("--accent");
-      root.removeProperty("--accent-soft");
-      root.removeProperty("--field-a");
+      ["--accent", "--accent-soft", "--field-a", "--field-b", "--ground"].forEach((v) => root.removeProperty(v));
     };
-  }, [accent]);
+  }, [accent, palette]);
+
+  const choosePalette = useCallback((pl: Palette) => {
+    setPalette(pl);
+    try {
+      window.localStorage.setItem(PALETTE_STORAGE_KEY, pl.id);
+    } catch {}
+  }, []);
+
+  // P cycles palettes while trying them on
+  useEffect(() => {
+    if (!showPalettes) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "p" && e.key !== "P") return;
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return;
+      const i = palettes.findIndex((pl) => pl.id === palette.id);
+      choosePalette(palettes[(i + 1) % palettes.length]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showPalettes, palette, choosePalette]);
 
   const openStation = useCallback((id: string) => {
     const card = cards[CARD_FOR_STATION[id]];
@@ -241,6 +273,7 @@ export function BoardExperience() {
             key={intro}
             start={intro}
             current={mode}
+            accents={palette.accents}
             onSelect={selectMode}
             onDismiss={mode ? () => setIntro(null) : undefined}
           />
@@ -263,6 +296,7 @@ export function BoardExperience() {
           dimmed={dimmed}
           accent={accent}
           accessory={modeConfig.accessory}
+          palette={palette}
           reduce={reduce}
           compact={compact}
           onHover={setHovered}
@@ -272,9 +306,9 @@ export function BoardExperience() {
       </div>
 
       {/* netflix-style vignettes so words stay readable over the board */}
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-[48%] bg-gradient-to-r from-[#0c1422] via-[#0c1422]/85 to-transparent lg:block" />
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[42%] bg-gradient-to-t from-[#0c1422] via-[#0c1422]/80 to-transparent" />
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#0c1422]/90 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-[48%] bg-[linear-gradient(to_right,var(--ground)_0%,color-mix(in_srgb,var(--ground)_85%,transparent)_45%,transparent_100%)] lg:block" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[42%] bg-[linear-gradient(to_top,var(--ground)_0%,color-mix(in_srgb,var(--ground)_80%,transparent)_50%,transparent_100%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--ground)_90%,transparent),transparent)]" />
 
       {/* top bar */}
       <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
@@ -416,7 +450,7 @@ export function BoardExperience() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, delay: reduce ? 0 : 1 }}
-            className="absolute top-[4.25rem] left-10 z-20 hidden items-center gap-3 border bg-[#0c1422]/90 px-3.5 py-2 text-[0.95rem] text-ink backdrop-blur lg:flex"
+            className="absolute top-[4.25rem] left-10 z-20 hidden items-center gap-3 border bg-[color-mix(in_srgb,var(--ground)_90%,transparent)] px-3.5 py-2 text-[0.95rem] text-ink backdrop-blur lg:flex"
             style={{ borderColor: accent }}
           >
             <CursorClick size={20} weight="duotone" style={{ color: accent }} aria-hidden />
@@ -445,6 +479,67 @@ export function BoardExperience() {
           ))}
         </ul>
       </nav>
+
+      {showPalettes && !intro && !palettesOpen && (
+        <button
+          type="button"
+          onClick={() => setPalettesOpen(true)}
+          className="absolute top-20 right-4 z-40 flex items-center gap-2 border border-rule bg-[color-mix(in_srgb,var(--ground)_92%,transparent)] px-3 py-2 text-sm text-ink backdrop-blur hover:border-accent sm:right-6"
+        >
+          <span className="flex gap-1">
+            {(["recruiter", "engineer", "curious"] as const).map((m) => (
+              <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: palette.accents[m] }} />
+            ))}
+          </span>
+          Palettes
+        </button>
+      )}
+
+      {showPalettes && !intro && palettesOpen && (
+        <aside
+          aria-label="Try colour palettes"
+          className="absolute top-20 right-4 z-40 w-[17rem] border border-rule bg-[color-mix(in_srgb,var(--ground)_92%,transparent)] p-3 backdrop-blur sm:right-6"
+        >
+          <p className="flex items-center justify-between text-xs font-semibold tracking-[0.15em] text-ink-2 uppercase">
+            Try a palette
+            <span className="flex items-center gap-2 font-mono tracking-normal normal-case">
+              press P
+              <button type="button" onClick={() => setPalettesOpen(false)} aria-label="Hide palettes" className="text-ink-2 hover:text-ink">
+                <X size={14} />
+              </button>
+            </span>
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {palettes.map((pl, i) => {
+              const on = pl.id === palette.id;
+              return (
+                <li key={pl.id}>
+                  <button
+                    type="button"
+                    onClick={() => choosePalette(pl)}
+                    title={pl.line}
+                    className="flex w-full items-center gap-2.5 border px-2.5 py-2 text-left transition-colors"
+                    style={{ borderColor: on ? accent : "rgba(255,255,255,0.08)", background: on ? "rgba(255,255,255,0.06)" : "transparent" }}
+                  >
+                    <span className="font-mono text-xs text-ink-2">{i + 1}</span>
+                    <span className="flex h-6 w-9 shrink-0 overflow-hidden border border-white/15">
+                      <span className="w-1/2" style={{ background: pl.ground }} />
+                      <span className="w-1/2" style={{ background: pl.board }} />
+                    </span>
+                    <span className="flex-1 text-sm text-ink">{pl.name}</span>
+                    <span className="flex gap-1">
+                      {(["recruiter", "engineer", "curious"] as const).map((m) => (
+                        <span key={m} className="h-2.5 w-2.5 rounded-full" style={{ background: pl.accents[m] }} />
+                      ))}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-xs leading-snug text-ink-2">{palette.line}</p>
+        </aside>
+      )}
 
       <TitleModal card={openCard} accent={accent} onClose={() => setOpenCard(null)} />
     </div>

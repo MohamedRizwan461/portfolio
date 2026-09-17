@@ -49,11 +49,12 @@ type Props = {
   /** "gate" asks for the click that powers on (and allows sound); "select" goes straight to operators */
   start: "gate" | "select";
   current?: ModeId | null;
+  accents?: Record<ModeId, string>;
   onSelect: (mode: ModeId) => void;
   onDismiss?: () => void;
 };
 
-export function BootIntro({ start, current, onSelect, onDismiss }: Props) {
+export function BootIntro({ start, current, accents, onSelect, onDismiss }: Props) {
   const reduce = useReducedMotion() ?? false;
   const [phase, setPhase] = useState<"gate" | "powering" | "select">(start);
   const [lit, setLit] = useState(0);
@@ -230,7 +231,8 @@ export function BootIntro({ start, current, onSelect, onDismiss }: Props) {
             <p className="mt-3 text-lg text-ink-2">Pick one. The board, the robot and what you see will change with it.</p>
 
             <ul className="mt-10 grid gap-5 sm:grid-cols-3" role="listbox" aria-label="Operators">
-              {modes.map((m, i) => {
+              {modes.map((base, i) => {
+                const m = accents ? { ...base, accent: accents[base.id] } : base;
                 const active = i === focus;
                 return (
                   <li key={m.id} role="option" aria-selected={active}>

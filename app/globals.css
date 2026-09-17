@@ -122,7 +122,8 @@ p {
   bottom: -30vh;
   width: 70vw;
   height: 70vw;
-  background: radial-gradient(circle at 50% 50%, rgba(39, 224, 196, 0.32), transparent 60%);
+  background: radial-gradient(circle at 50% 50%, var(--field-b, rgba(39, 224, 196, 0.32)), transparent 60%);
+  transition: background 800ms ease;
   animation: bd-drift-b 44s ease-in-out infinite alternate;
 }
 
