@@ -28,6 +28,7 @@ import { stations } from "@/lib/stations";
 import { Mask } from "@/components/motion-bits";
 import { ThemeToggle } from "@/components/theme-toggle";
 const BootIntro = dynamic(() => import("./boot-intro").then((m) => m.BootIntro), { ssr: false });
+import { InviteToast } from "./invite-toast";
 import { RowDock } from "./row-dock";
 import { TitleModal } from "./title-modal";
 
@@ -462,6 +463,14 @@ export function BoardExperience() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* an invitation to the thing this visitor would enjoy */}
+      <InviteToast
+        mode={mode}
+        blocked={Boolean(intro) || Boolean(openCard)}
+        accent={accent}
+        onAccept={() => openFromRow(cards.gearsim)}
+      />
 
       {/* the row */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-8 sm:pb-6">

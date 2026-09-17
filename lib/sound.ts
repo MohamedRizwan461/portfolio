@@ -282,18 +282,21 @@ export function startEngine() {
 
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = 900;
+  filter.frequency.value = 520;
+  filter.Q.value = 0.4;
   const gain = ctx.createGain();
   gain.gain.value = 0.0001;
   filter.connect(gain);
-  send(r, gain, 0.2);
+  send(r, gain, 0.12);
 
-  const osc = [1, 2.02, 3.01].map((mult, i) => {
+  // three sine partials, slightly detuned: a hum rather than a buzz
+  const osc = [1, 2.005, 2.99].map((mult, i) => {
     const o = ctx.createOscillator();
-    o.type = i === 0 ? "sawtooth" : "sine";
-    o.frequency.value = 70 * mult;
+    o.type = "sine";
+    o.frequency.value = 62 * mult;
+    o.detune.value = [0, 5, -6][i];
     const g = ctx.createGain();
-    g.gain.value = [0.35, 0.5, 0.25][i];
+    g.gain.value = [0.6, 0.22, 0.1][i];
     o.connect(g).connect(filter);
     o.start(t);
     return o;
@@ -312,11 +315,11 @@ export function startEngine() {
   road.loop = true;
   const roadFilter = ctx.createBiquadFilter();
   roadFilter.type = "lowpass";
-  roadFilter.frequency.value = 700;
+  roadFilter.frequency.value = 340;
   const roadGain = ctx.createGain();
   roadGain.gain.value = 0.0001;
   road.connect(roadFilter).connect(roadGain);
-  send(r, roadGain, 0.25);
+  send(r, roadGain, 0.15);
   road.start(t);
 
   engine = { osc, gain, filter, road, roadGain };
@@ -327,10 +330,11 @@ export function setEngineSpeed(speed: number) {
   if (!engine || !rig) return;
   const t = rig.ctx.currentTime;
   const s = Math.max(0, Math.min(1, speed));
-  engine.osc.forEach((o, i) => o.frequency.setTargetAtTime((70 + s * 210) * [1, 2.02, 3.01][i], t, 0.25));
-  engine.filter.frequency.setTargetAtTime(700 + s * 1800, t, 0.3);
-  engine.gain.gain.setTargetAtTime(0.0001 + s * 0.07, t, 0.25);
-  engine.roadGain.gain.setTargetAtTime(0.0001 + s * 0.05, t, 0.3);
+  // gentle range, gentle slopes: it should sit under everything, never whine
+  engine.osc.forEach((o, i) => o.frequency.setTargetAtTime((62 + s * 96) * [1, 2.005, 2.99][i], t, 0.6));
+  engine.filter.frequency.setTargetAtTime(420 + s * 520, t, 0.7);
+  engine.gain.gain.setTargetAtTime(0.0001 + s * 0.028, t, 0.6);
+  engine.roadGain.gain.setTargetAtTime(0.0001 + s * 0.02, t, 0.7);
 }
 
 export function stopEngine() {
