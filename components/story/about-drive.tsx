@@ -43,12 +43,13 @@ export function AboutDrive() {
 
   return (
     <>
-      <StoryCruise />
+      <StoryCruise readHref="/about/read" />
       <Link
         href="/about/read"
-        className="glass fixed top-[5.25rem] right-4 z-40 flex items-center gap-2 rounded-full px-4 py-2 text-[0.78rem] text-ink no-underline transition-colors hover:text-ink sm:top-[5.75rem] sm:right-8"
+        className="glass fixed top-[5.25rem] right-4 z-40 flex items-center gap-2 rounded-full border-2 px-4 py-2.5 text-[0.82rem] font-medium text-ink no-underline shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] transition-transform duration-500 hover:-translate-y-0.5 sm:top-[5.75rem] sm:right-8"
+        style={{ borderColor: "color-mix(in srgb, var(--accent) 55%, transparent)" }}
       >
-        <TextAlignLeft size={14} aria-hidden /> Read it instead
+        <TextAlignLeft size={15} aria-hidden /> Read the story instead
       </Link>
     </>
   );

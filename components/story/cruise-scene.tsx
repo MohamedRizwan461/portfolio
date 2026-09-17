@@ -6,29 +6,13 @@ import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { beats } from "@/lib/story";
+import { CP0, cpX, END, GAP, LANE, MAX_V, type Sim } from "@/lib/cruise";
 import { useCurvedPlane, useFace } from "@/components/robot-self";
 
 /* ------------------------------------------------------------------ shared */
 
-export const CP0 = 26;
-export const GAP = 64;
-export const cpX = (k: number) => CP0 + k * GAP;
-export const END = cpX(beats.length - 1) + 60;
-export const MAX_V = 15;
-const LANE = 1.4;
-
-export type Sim = {
-  s: number;
-  v: number;
-  dir: number;
-  auto: boolean;
-  started: boolean;
-  talking: boolean;
-  speaking: boolean;
-  next: number;
-  near: number;
-  reduce: boolean;
-};
+export { CP0, GAP, cpX, END, MAX_V } from "@/lib/cruise";
+export type { Sim } from "@/lib/cruise";
 
 function rng(seed: number) {
   let s = seed;

@@ -18,7 +18,7 @@ export type Mode = {
   kicker: string;
   headline: string;
   sub: string;
-  primary: { label: string; href: string; download?: boolean; external?: boolean };
+  primary: { label: string; href: string; download?: boolean; external?: boolean; action?: "gearsim" };
   secondary: { label: string; href: string; external?: boolean };
   /** netflix-style row */
   rowTitle: string;
@@ -58,8 +58,8 @@ export const modes: Mode[] = [
     kicker: "Bare metal to bus traffic",
     headline: "Embedded C, CAN, FreeRTOS, TinyML.",
     sub: "Interlocks written as requirements first, frames checked with a counter and checksum, gait classified on a Cortex-M0+.",
-    primary: { label: "GitHub", href: "https://github.com/MohamedRizwan461", external: true },
-    secondary: { label: "All case studies", href: "/projects" },
+    primary: { label: "Try the gear controller", href: "/projects/can-gear-controller", action: "gearsim" },
+    secondary: { label: "GitHub", href: "https://github.com/MohamedRizwan461", external: true },
     rowTitle: "Firmware, protocols and control",
     cards: ["gearsim", "can", "knee", "robot", "asmc", "wsn", "eyewear", "github"],
     route: ["can-gear-controller", "smart-knee-actuator", "autonomous-mobile-robot", "rfid-iot-attendance", "ev-boost-converter"],

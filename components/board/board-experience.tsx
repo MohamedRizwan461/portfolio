@@ -28,6 +28,7 @@ import { stations } from "@/lib/stations";
 import { Mask } from "@/components/motion-bits";
 import { ThemeToggle } from "@/components/theme-toggle";
 const BootIntro = dynamic(() => import("./boot-intro").then((m) => m.BootIntro), { ssr: false });
+import { BoardGuide } from "./board-guide";
 import { InviteToast } from "./invite-toast";
 import { RowDock } from "./row-dock";
 import { TitleModal } from "./title-modal";
@@ -164,11 +165,6 @@ export function BoardExperience() {
     try {
       window.localStorage.setItem(SCHEME_STORAGE_KEY, sc);
     } catch {}
-  }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => setHint(false), 7000);
-    return () => clearTimeout(t);
   }, []);
 
   // P cycles themes, L flips light and dark, while trying them on
@@ -442,7 +438,11 @@ export function BoardExperience() {
             transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
             className="pointer-events-auto mt-6 flex flex-wrap gap-2.5 sm:mt-8"
           >
-            {modeConfig.primary.download || modeConfig.primary.external ? (
+            {modeConfig.primary.action === "gearsim" ? (
+              <button type="button" onClick={() => openFromRow(cards.gearsim)} className={pillPrimary}>
+                <PlayCircle size={17} weight="fill" /> {modeConfig.primary.label}
+              </button>
+            ) : modeConfig.primary.download || modeConfig.primary.external ? (
               <a
                 href={modeConfig.primary.href}
                 {...(modeConfig.primary.download ? { download: true } : { target: "_blank", rel: "noopener" })}
@@ -469,24 +469,8 @@ export function BoardExperience() {
         </motion.section>
       </AnimatePresence>
 
-      {/* how to play, in words people can actually read */}
-      <AnimatePresence>
-        {hint && !intro && (
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, delay: reduce ? 0 : 1 }}
-            className="eyebrow absolute top-[4.9rem] left-12 z-20 hidden items-center gap-3 !text-[0.6rem] lg:flex"
-          >
-            <CursorClick size={13} style={{ color: accent }} aria-hidden />
-            Click a chip and the robot drives there. Drag to look around.
-            <button type="button" onClick={() => setHint(false)} aria-label="Dismiss hint" className="text-ink-2 hover:text-ink">
-              <X size={12} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* how to work the board */}
+      {!intro && <BoardGuide compact={compact} accent={accent} collapsed={!hint} />}
 
       {/* an invitation to the thing this visitor would enjoy */}
       <InviteToast

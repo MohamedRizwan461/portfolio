@@ -4,10 +4,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Lightning, Play, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowRight, Check, Lightning, Play, SpeakerHigh, SpeakerSlash, TextAlignLeft } from "@phosphor-icons/react/dist/ssr";
 import { beats } from "@/lib/story";
 import { buzz, playArrive, playBadge, playType, setEngineSpeed, setSoundEnabled, soundEnabled, startEngine, stopEngine, unlockAudio } from "@/lib/sound";
-import type { Sim } from "./cruise-scene";
+import { cpX, type Sim } from "@/lib/cruise";
 import { useAccent } from "./lab";
 
 const CruiseScene = dynamic(() => import("./cruise-scene").then((m) => m.CruiseScene), {
@@ -22,7 +22,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * places of his story. The car eases into each stop, he turns to you and talks,
  * and you read on to keep driving.
  */
-export function StoryCruise() {
+export function StoryCruise({ readHref }: { readHref?: string } = {}) {
   const reduce = useReducedMotion() ?? false;
   const accent = useAccent();
   const sim = useRef<Sim>({ s: 0, v: 0, dir: 0, auto: false, started: false, talking: false, speaking: false, next: 0, near: 0, reduce: false });
@@ -42,6 +42,22 @@ export function StoryCruise() {
   }, [reduce]);
 
   useEffect(() => setSound(soundEnabled()), []);
+
+  // on a touch screen, holding a button while reading is awkward: drive it for them
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) setAuto(true);
+  }, []);
+
+  // the chapter dots are shortcuts: jump straight to that stop
+  const jumpTo = useCallback((k: number) => {
+    setTalk(null);
+    sim.current.talking = false;
+    sim.current.v = 0;
+    sim.current.s = Math.max(0, cpX(k) - 0.05);
+    sim.current.next = k;
+    sim.current.started = true;
+    setStarted(true);
+  }, []);
 
   // the drivetrain: a quiet whine and road noise that follow the speed
   useEffect(() => {
@@ -164,13 +180,25 @@ export function StoryCruise() {
             <span style={{ color: accent }}>{beatNow.n}</span> <span className="mx-2 opacity-40">/</span> {beatNow.label}
             <span className="mx-2 opacity-40">/</span> {beatNow.years}
           </p>
-          <ol className="mt-3 flex gap-1.5">
+          <ol className="pointer-events-auto mt-3 flex gap-1.5">
             {beats.map((b, k) => (
-              <li
-                key={b.id}
-                className="h-[3px] w-7 rounded-full transition-colors duration-500 sm:w-10"
-                style={{ background: visited.includes(k) ? accent : k === near ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.14)" }}
-              />
+              <li key={b.id}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    jumpTo(k);
+                  }}
+                  title={`${b.n} ${b.label}`}
+                  aria-label={`Drive to ${b.label}`}
+                  className="block h-4 w-7 pt-[6px] sm:w-10"
+                >
+                  <span
+                    className="block h-[3px] w-full rounded-full transition-colors duration-500"
+                    style={{ background: visited.includes(k) ? accent : k === near ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.14)" }}
+                  />
+                </button>
+              </li>
             ))}
           </ol>
         </div>
@@ -325,6 +353,11 @@ export function StoryCruise() {
                 >
                   Auto-drive
                 </button>
+                {readHref && (
+                  <Link href={readHref} className="flex h-12 items-center gap-2 rounded-full border border-white/25 px-6 text-sm font-medium text-white no-underline">
+                    <TextAlignLeft size={15} /> Read it instead
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>
