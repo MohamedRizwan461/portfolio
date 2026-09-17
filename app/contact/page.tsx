@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import { ArrowUpRight, DownloadSimple, EnvelopeSimple, GithubLogo, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, EnvelopeSimple, GithubLogo, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
 import { ContactForm } from "@/components/contact-form";
 import { Mask, Reveal } from "@/components/motion-bits";
-import { ButtonAnchor, Container } from "@/components/ui";
+import { ResumeViewer } from "@/components/resume-viewer";
+import { Container } from "@/components/ui";
 import { site } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -83,48 +83,7 @@ export default function ContactPage() {
         {/* the resume, pinned beside it */}
         <aside aria-labelledby="resume" className="order-2 lg:order-none lg:col-span-7">
           <div className="lg:sticky lg:top-24">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 id="resume" className="eyebrow">
-                  Resume <span className="mx-2 opacity-40">/</span> 2 pages <span className="mx-2 opacity-40">/</span> PDF
-                </h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <ButtonAnchor href={site.resumePdf} download className="!h-10 !px-4">
-                  <DownloadSimple size={15} weight="bold" aria-hidden /> Download
-                </ButtonAnchor>
-                <ButtonAnchor href={site.resumePdf} target="_blank" rel="noopener" variant="secondary" className="!h-10 !px-4">
-                  Open <ArrowUpRight size={14} weight="bold" aria-hidden />
-                </ButtonAnchor>
-              </div>
-            </div>
-
-            {/* desktop: the browser's own PDF viewer, as tall as the window allows */}
-            <div className="mt-4 hidden border border-rule bg-[var(--surface)] p-1.5 shadow-[0_50px_120px_-50px_rgba(0,0,0,0.9)] md:block">
-              <iframe
-                src={`${site.resumePdf}#navpanes=0&view=FitH`}
-                title="Resume PDF viewer"
-                className="block h-[calc(100dvh-13.25rem)] min-h-[480px] w-full bg-white"
-              />
-            </div>
-
-            {/* phones: the first page as a preview; the full PDF is one tap away */}
-            <a href={site.resumePdf} target="_blank" rel="noopener" className="group relative mt-4 block overflow-hidden border border-rule md:hidden">
-              <Image
-                src="/resume/page-1.png"
-                width={1224}
-                height={1584}
-                alt="Resume, page 1"
-                sizes="100vw"
-                className="h-[62vh] w-full bg-white object-cover object-top"
-              />
-              <span className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/85 to-transparent px-4 pt-12 pb-4 text-sm text-white">
-                Page 1 of 2
-                <span className="inline-flex items-center gap-1.5 font-medium">
-                  Open full PDF <ArrowUpRight size={14} weight="bold" aria-hidden />
-                </span>
-              </span>
-            </a>
+            <ResumeViewer pdf={site.resumePdf} />
           </div>
         </aside>
       </div>
