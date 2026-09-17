@@ -31,8 +31,8 @@ export function ContactForm({ email }: { email: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-6">
-      <div className="grid gap-6 sm:grid-cols-2">
+    <form onSubmit={onSubmit} noValidate className="grid gap-5">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="name" className="eyebrow">
             Name
@@ -65,7 +65,7 @@ export function ContactForm({ email }: { email: string }) {
         <textarea
           id="message"
           name="message"
-          rows={4}
+          rows={3}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={errors.message ? "message-error" : undefined}
           className={`${field} resize-y`}

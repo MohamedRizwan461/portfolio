@@ -15,8 +15,7 @@ const nav = [
   { href: "/tour", label: "Tour" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
-  { href: "/resume", label: "Resume" },
-  { href: "/contact", label: "Contact" },
+  { href: "/contact", label: "Resume & Contact" },
 ];
 
 /** A floating glass capsule that gathers itself once you scroll; a full-screen menu on phones. */
