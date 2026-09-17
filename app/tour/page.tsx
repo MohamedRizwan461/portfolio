@@ -1,304 +1,119 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, EnvelopeSimple, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
-import { Deck, type Slide } from "@/components/deck";
-import { JourneyStrip } from "@/components/journey-strip";
+import { ArrowRight, CarProfile, ChartBar, EnvelopeSimple, GameController, Textbox } from "@phosphor-icons/react/dist/ssr";
 import { HudPortrait } from "@/components/hud-portrait";
-import { CountUp, Typewriter } from "@/components/motion-bits";
-import { VideoFigure } from "@/components/video-figure";
-import { CanBusScene, CarScene, ProtoScene, VisionScene } from "@/components/illustrations";
-import { Button, ButtonAnchor } from "@/components/ui";
-import { featured, projects, proof, site, strengths } from "@/lib/content";
+import { CountUp, Mask, Reveal } from "@/components/motion-bits";
+import { Container } from "@/components/ui";
+import { projects, site } from "@/lib/content";
 
-const knee = projects.find((p) => p.slug === "smart-knee-actuator")!;
-
-const slides: Slide[] = [
-  {
-    id: "hello",
-    label: "Hello",
-    content: (
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
-        <div className="order-2 lg:order-1 lg:col-span-7">
-          <p className="eyebrow">
-            <Typewriter text="> boot riz ... sensors ok, actuators ok, coffee ok" />
-          </p>
-          <h1 className="mt-4 display text-[clamp(2.1rem,4vw,3.4rem)]">
-            Mohamed Rizwan
-            <span className="block text-ink-2">Ameer John</span>
-          </h1>
-          <p className="mt-4 max-w-[38ch] text-lg leading-snug text-ink sm:mt-6 sm:text-2xl">
-            Robotics and embedded systems engineer. I build firmware, robots and vision systems that run on real
-            hardware.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="/projects">
-              View projects <ArrowRight size={16} weight="bold" aria-hidden />
-            </Button>
-            <Button href="/contact" variant="secondary">
-              Get in touch <ArrowRight size={16} weight="bold" aria-hidden />
-            </Button>
-          </div>
-          <dl className="mt-8 hidden flex-wrap gap-x-10 gap-y-4 text-sm sm:flex">
-            {[
-              ["Patents filed", <CountUp key="p" to={3} />],
-              ["MS Computer Science", "2026"],
-              ["Focus", "Robotics, embedded, AV"],
-            ].map(([k, v]) => (
-              <div key={String(k)}>
-                <dt className="text-xs text-ink-2">{k}</dt>
-                <dd className="num mt-1 font-mono">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
-        <div className="order-1 lg:order-2 lg:col-span-5">
-          <HudPortrait />
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: "path",
-    label: "The path",
-    content: (
-      <div className="mx-auto w-full max-w-6xl">
-        <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
-          Biology first. Then the machines.
-        </h2>
-        <p className="mt-4 max-w-[58ch] text-ink-2">
-          Biology came first, engineering second, and the two have been the same subject ever since: machines that move
-          for people who cannot.
-        </p>
-        <JourneyStrip />
-      </div>
-    ),
-  },
-  {
-    id: "running",
-    label: "It runs",
-    content: (
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
-        <div className="lg:col-span-5">
-          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
-            No renders were harmed.
-            <span className="block text-ink-2">It actually moves.</span>
-          </h2>
-          <p className="mt-4 max-w-[46ch] text-ink-2">
-            A pneumatic knee exoskeleton that reads gait phase on an RP2040 and fires the cylinder when the knee needs
-            it. Bench footage, not a simulation.
-          </p>
-          <dl className="mt-8 grid max-w-md grid-cols-2 gap-3 text-sm">
-            {[
-              ["Classifier", "TinyML, on-device"],
-              ["Actuation", "5/2 DCV, 10 bar"],
-              ["FEA load case", "500 N"],
-              ["Patent", "202341027059"],
-            ].map(([k, v]) => (
-              <div key={k} className="panel p-3">
-                <dt className="text-xs text-ink-2">{k}</dt>
-                <dd className="num mt-1 font-mono text-[0.8125rem]">{v}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-8">
-            <Link
-              href="/projects/smart-knee-actuator"
-              className="ease group inline-flex items-center gap-2 font-medium text-ink link-u"
-            >
-              Read the case study
-              <ArrowRight
-                size={16}
-                weight="bold"
-                aria-hidden
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </Link>
-          </p>
-        </div>
-        <div className="lg:col-span-7">
-          {/* portrait footage: never taller than the window */}
-          <div className="mx-auto w-full max-w-[calc((100dvh-15rem)*0.75)]">
-            <VideoFigure video={knee.videos![0]} />
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: "work",
-    label: "Work",
-    content: (
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
-            Selected work
-          </h2>
-          <Link
-            href="/projects"
-            className="ease group inline-flex items-center gap-2 text-sm font-medium text-ink link-u"
-          >
-            All {projects.length} projects
-            <ArrowRight
-              size={14}
-              weight="bold"
-              aria-hidden
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </Link>
-        </div>
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
-          {featured.map((p) => (
-            <li key={p.slug}>
-              <Link
-                href={`/projects/${p.slug}`}
-                className="panel group flex h-full flex-col overflow-hidden no-underline transition-colors duration-500 hover:border-rule-strong"
-              >
-                <span className="hidden aspect-[16/10] overflow-hidden bg-black/40 sm:block">
-                  {p.cover.src ? (
-                    <Image
-                      src={p.cover.src}
-                      width={p.cover.width}
-                      height={p.cover.height}
-                      alt={p.cover.alt}
-                      sizes="(min-width: 768px) 360px, 100vw"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
-                    />
-                  ) : (
-                    <CanBusScene className="h-full w-full" />
-                  )}
-                </span>
-                <span className="flex flex-1 flex-col p-5">
-                  <span className="num font-mono text-xs text-ink-2">
-                    {p.date}
-                    {p.status && <span className="ml-2 text-accent">{p.status}</span>}
-                  </span>
-                  <span className="mt-2 block text-xl font-light tracking-tight">
-                    {p.title}
-                  </span>
-                  <span className="mt-2 line-clamp-3 block text-sm text-ink-2">{p.problem}</span>
-                  <span className="mt-auto pt-4 font-mono text-[0.7rem] text-ink-2">{p.stack.join(" · ")}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: "proof",
-    label: "Proof",
-    content: (
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-12 lg:gap-16">
-        <div className="lg:col-span-6">
-          <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">
-            Three filed patents, on record
-          </h2>
-          <p className="mt-4 max-w-[46ch] text-ink-2">
-            Two in assistive robotics, one in wireless sensor networks, filed with the Indian Patent Office. Current
-            status: awaiting examination, because patent offices run at a much lower sample rate than firmware.
-          </p>
-          <dl className="mt-8 divide-y divide-rule border-y border-rule">
-            {proof.map((item) => (
-              <div key={item.value} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
-                <dt className="text-sm text-ink-2">{item.detail}</dt>
-                <dd className="num font-mono text-sm text-ink">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="lg:col-span-6">
-          <figure className="m-0">
-            <div className="panel overflow-hidden">
-              <Image
-                src="/images/patents/knee-record.png"
-                width={840}
-                height={420}
-                alt="Indian Patent Office record for application 202341027059, Smart Knee Actuator"
-                sizes="(min-width: 1024px) 520px, 100vw"
-                className="h-auto w-full bg-white object-contain"
-              />
-            </div>
-            <figcaption className="mt-2 text-xs text-ink-2">
-              Indian Patent Office record, application 202341027059, filed 12 April 2023.
-            </figcaption>
-          </figure>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: "skills",
-    label: "What I do",
-    content: (
-      <div className="mx-auto w-full max-w-6xl">
-        <h2 className="display text-[clamp(1.7rem,2.8vw,2.4rem)]">What I do</h2>
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
-          {strengths.map((s) => (
-            <li key={s.title} className="panel overflow-hidden">
-              <div className="aspect-[2/1] border-b border-rule">
-                {s.title.startsWith("Embedded") ? (
-                  <CarScene className="h-full w-full" />
-                ) : s.title.startsWith("Computer") ? (
-                  <VisionScene className="h-full w-full" />
-                ) : (
-                  <ProtoScene className="h-full w-full" />
-                )}
-              </div>
-              <div className="p-5">
-              <h3 className="text-xl font-light tracking-tight">{s.title}</h3>
-              <p className="mt-3 text-sm text-ink-2">{s.body}</p>
-              <ul className="mt-4 flex flex-wrap gap-1.5">
-                {s.tools.map((t) => (
-                  <li key={t} className="rounded-full border border-rule px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-2">
-                    {t}
-                  </li>
-                ))}
-              </ul>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: "contact",
-    label: "Contact",
-    content: (
-      <div className="mx-auto w-full max-w-4xl text-center">
-        <h2 className="display text-[clamp(2rem,3.8vw,3.1rem)]">
-          Ping me. I respond faster
-          <span className="block text-ink-2">than a bus timeout.</span>
-        </h2>
-        <p className="mx-auto mt-6 max-w-[52ch] text-lg text-ink-2">
-          Robotics, embedded or autonomous vehicles. Somewhere I can be useful from the first week and learn from
-          engineers further along than me.
-        </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <ButtonAnchor href={`mailto:${site.email}`}>
-            <EnvelopeSimple size={18} aria-hidden /> Email me
-          </ButtonAnchor>
-          <ButtonAnchor href={site.linkedin} target="_blank" rel="noopener" variant="secondary">
-            <LinkedinLogo size={18} aria-hidden /> LinkedIn
-          </ButtonAnchor>
-          <ButtonAnchor href={site.github} target="_blank" rel="noopener" variant="secondary">
-            GitHub <ArrowUpRight size={16} weight="bold" aria-hidden />
-          </ButtonAnchor>
-        </div>
-        <p className="num mt-10 font-mono text-sm text-ink-2">{site.email}</p>
-      </div>
-    ),
-  },
-];
-
-export const metadata = {
-  title: "Guided tour",
-  description: "A seven-screen guided tour of Riz's work: the path, the hardware, the patents.",
+export const metadata: Metadata = {
+  title: "Start here",
+  description: "Every way into Riz's work in one place: the drive through his story, the gear controller simulator, the case studies and the board.",
   alternates: { canonical: "/tour" },
 };
 
-export default function Tour() {
-  return <Deck slides={slides} />;
+const ways = [
+  {
+    href: "/about",
+    Icon: CarProfile,
+    title: "Take the drive",
+    line: "Seven stops, biology in Chennai to autonomous vehicles in Chicago. He pulls over and tells you each one.",
+    meta: "3 minutes",
+  },
+  {
+    href: "/projects/can-gear-controller#try-it",
+    Icon: GameController,
+    title: "Try the gear controller",
+    line: "Shift into reverse at 40 km/h and watch the firmware refuse. Then cut the CAN wire and see what happens without it.",
+    meta: "Interactive",
+  },
+  {
+    href: "/projects",
+    Icon: Textbox,
+    title: "Read the case studies",
+    line: `${projects.length} systems, each one problem, build, stack, validation and results. Firmware, mechanisms and vision.`,
+    meta: "Deep",
+  },
+  {
+    href: "/",
+    Icon: ChartBar,
+    title: "Explore the board",
+    line: "The 3D circuit board on the home page: every chip is a project, and a robot drives to the one you pick.",
+    meta: "Playful",
+  },
+  {
+    href: "/contact",
+    Icon: EnvelopeSimple,
+    title: "Get in touch",
+    line: "Email, LinkedIn or GitHub, and a short message form that opens your own mail app.",
+    meta: "Direct",
+  },
+];
+
+const facts = [
+  { k: "Patents filed", v: <CountUp key="p" to={3} /> },
+  { k: "MS Computer Science", v: "2026" },
+  { k: "Based in", v: "Chicago, IL" },
+];
+
+export default function StartHere() {
+  return (
+    <Container className="pt-24 pb-16 sm:pt-28">
+      <Mask>
+        <p className="eyebrow">Start here</p>
+      </Mask>
+      <h1 className="display mt-3 text-[clamp(1.75rem,2.6vw,2.4rem)] !tracking-[-0.035em]">
+        <Mask delay={0.08}>Five ways in.</Mask>
+      </h1>
+      <Reveal delay={0.2}>
+        <p className="mt-3 max-w-[54ch] text-[0.98rem] leading-relaxed font-light text-ink-2">
+          {site.role}. {site.ask}. Pick whichever suits the time you have.
+        </p>
+      </Reveal>
+
+      <div className="mt-10 grid gap-10 border-t border-rule pt-8 lg:grid-cols-12 lg:gap-14">
+        <ul className="flex flex-col gap-2.5 lg:col-span-7">
+          {ways.map(({ href, Icon, title, line, meta }, i) => (
+            <li key={href}>
+              <Reveal delay={0.05 * i}>
+                <Link
+                  href={href}
+                  className="group flex items-start gap-4 rounded-xl border border-rule bg-[color-mix(in_srgb,var(--surface)_55%,transparent)] px-5 py-4 no-underline transition-[border-color,background-color,transform] duration-500 hover:-translate-y-0.5 hover:border-rule-strong hover:bg-[color-mix(in_srgb,var(--surface)_85%,transparent)]"
+                >
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-500 group-hover:border-accent group-hover:text-accent">
+                    <Icon size={17} aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-baseline gap-x-3">
+                      <span className="text-[1.05rem] font-medium tracking-tight text-ink">{title}</span>
+                      <span className="eyebrow !text-[0.58rem]">{meta}</span>
+                    </span>
+                    <span className="mt-1.5 block max-w-[62ch] text-[0.88rem] leading-relaxed text-ink-2">{line}</span>
+                  </span>
+                  <ArrowRight
+                    size={15}
+                    weight="bold"
+                    aria-hidden
+                    className="mt-3 shrink-0 text-ink-2 transition-transform duration-500 group-hover:translate-x-1 group-hover:text-ink"
+                  />
+                </Link>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
+
+        <Reveal delay={0.2} className="lg:col-span-5">
+          <HudPortrait />
+          <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-rule pt-5">
+            {facts.map((f) => (
+              <div key={f.k}>
+                <dt className="eyebrow !text-[0.58rem]">{f.k}</dt>
+                <dd className="num mt-1.5 font-mono text-[0.95rem] text-ink">{f.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
+      </div>
+    </Container>
+  );
 }

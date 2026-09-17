@@ -106,6 +106,8 @@ export type Project = {
   videos?: ProjectVideo[];
   links: { label: string; href: string }[];
   patent?: string;
+  /** a look at the real thing, for engineers who want to see the code */
+  code?: { file: string; note: string; body: string }[];
 };
 
 const canFrame: Figure = {
@@ -160,6 +162,63 @@ export const projects: Project[] = [
     results: [
       "Control logic verified by host-run unit tests on every change.",
       "Frames with a bad checksum are rejected; a counter gap is flagged as a dropped frame.",
+    ],
+    code: [
+      {
+        file: "gear_state.c",
+        note: "The interlocks. Every branch is written against a requirement ID, and the test suite runs the same table on the host.",
+        body: `/* src/gear_state.c - every transition traces back to a requirement */
+bool gear_transition_allowed(const gear_ctx_t *ctx, gear_t requested)
+{
+    if (requested == ctx->current) return true;
+    if (requested == GEAR_N)       return true;
+    if (requested == GEAR_P)       return ctx->speed_x10 <= SPEED_PARK_LIMIT_X10;  /* SWR-004 */
+
+    if (requested == GEAR_R) {
+        if (ctx->speed_x10 > SPEED_REVERSE_LIMIT_X10) return false;                /* SWR-003 */
+        if (ctx->current == GEAR_P && !ctx->brake)    return false;                /* SWR-002 */
+        return true;
+    }
+
+    if (gear_is_forward(requested)) {
+        if (ctx->current == GEAR_P) return ctx->brake && requested == GEAR_D1;     /* SWR-002 */
+        if (ctx->current == GEAR_R ||
+            ctx->current == GEAR_N) return requested == GEAR_D1;
+        int8_t step = (int8_t)requested - (int8_t)ctx->current;
+        return step == 1 || step == -1;                                            /* SWR-006 */
+    }
+    return false;
+}`,
+      },
+      {
+        file: "can_protocol.c",
+        note: "The gear status frame, and why a corrupted or stale one is dropped instead of acted on.",
+        body: `/* src/can_protocol.c - gear status, CAN ID 0x18F00500, 8 bytes, every 20 ms */
+void can_encode_gear_status(const gear_ctx_t *ctx, uint8_t f[8])
+{
+    f[0] = (uint8_t)ctx->current;              /* P, R, N, D1..D8            */
+    f[1] = (uint8_t)(ctx->speed_x10 & 0xFF);   /* road speed in 0.1 km/h,    */
+    f[2] = (uint8_t)(ctx->speed_x10 >> 8);     /* little endian              */
+    f[3] = ctx->throttle_pct;                  /* 0..100                     */
+    f[4] = ctx->faults;                        /* invalid | timeout | crc    */
+    f[5] = 0x00;                               /* reserved                   */
+    f[6] = ctx->rolling_counter & 0x0F;        /* 0..15, wraps               */
+
+    uint8_t sum = 0;
+    for (uint8_t i = 0; i < 7; i++) sum += f[i];
+    f[7] = (uint8_t)(0xFF - sum);              /* checksum, SWR-030          */
+}
+
+/* the receiver drops the frame unless both agree, and faults after 250 ms */
+bool can_frame_is_trusted(const uint8_t f[8], uint8_t last_counter)
+{
+    uint8_t sum = 0;
+    for (uint8_t i = 0; i < 7; i++) sum += f[i];
+    if (f[7] != (uint8_t)(0xFF - sum))          return false;  /* SWR-030 */
+    if ((f[6] & 0x0F) == (last_counter & 0x0F)) return false;  /* SWR-031 */
+    return true;
+}`,
+      },
     ],
     figures: [canFrame],
     links: [],

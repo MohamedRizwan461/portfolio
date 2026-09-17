@@ -361,7 +361,7 @@ export function BoardExperience() {
         </div>
         <nav aria-label="Primary" className="flex items-center gap-0.5">
           <Link href="/tour" className={`${link} hidden lg:block`}>
-            Guided tour
+            Start here
           </Link>
           <Link href="/about" className={`${link} hidden lg:block`}>
             About

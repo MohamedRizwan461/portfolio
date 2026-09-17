@@ -87,6 +87,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
   ].filter((s) => s.items.length > 0);
   const toc = [
     ...sections.map(({ id, label }) => ({ id, label })),
+    ...(project.code?.length ? [{ id: "code", label: "The code" }] : []),
     { id: "characteristics", label: "Characteristics" },
     ...(galleryFigures.length || extraVideos.length ? [{ id: "gallery", label: "Gallery" }] : []),
   ];
@@ -213,7 +214,25 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             </Section>
           ))}
 
-          <Section id="characteristics" n={sections.length + 1} title="Characteristics">
+          {project.code?.length ? (
+            <Section id="code" n={sections.length + 1} title="The code">
+              <div className="space-y-5">
+                {project.code.map((c) => (
+                  <figure key={c.file} className="m-0 overflow-hidden border border-rule bg-[color-mix(in_srgb,var(--surface)_70%,transparent)]">
+                    <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule px-4 py-2.5">
+                      <span className="font-mono text-[0.72rem] text-ink">{c.file}</span>
+                      <span className="max-w-[62ch] text-[0.78rem] leading-relaxed text-ink-2">{c.note}</span>
+                    </figcaption>
+                    <pre className="overflow-x-auto px-4 py-4 font-mono text-[0.72rem] leading-[1.7] text-ink-2 sm:text-[0.78rem]">
+                      <code>{c.body}</code>
+                    </pre>
+                  </figure>
+                ))}
+              </div>
+            </Section>
+          ) : null}
+
+          <Section id="characteristics" n={sections.length + (project.code?.length ? 2 : 1)} title="Characteristics">
             <div className="grid gap-8 lg:grid-cols-[1fr_16rem]">
               <SpecTable rows={project.characteristics} caption={`${project.title} characteristics`} />
               {project.links.length > 0 && (
@@ -235,7 +254,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           </Section>
 
           {(galleryFigures.length > 0 || extraVideos.length > 0) && (
-            <Section id="gallery" n={sections.length + 2} title="Gallery">
+            <Section id="gallery" n={sections.length + (project.code?.length ? 3 : 2)} title="Gallery">
               <div className="columns-1 gap-5 sm:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
                 {extraVideos.map((v) => (
                   <VideoFigure key={v.src} video={v} />
