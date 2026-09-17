@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, EnvelopeSimple, GithubLogo, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
 import { ContactForm } from "@/components/contact-form";
 import { Mask, Reveal } from "@/components/motion-bits";
 import { Container } from "@/components/ui";
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 };
 
 const channels = [
-  { label: "Email", value: site.email, href: `mailto:${site.email}` },
-  { label: "LinkedIn", value: "Mohamed Rizwan Ameer John", href: site.linkedin, external: true },
-  { label: "GitHub", value: "MohamedRizwan461", href: site.github, external: true },
+  { label: "Email", value: site.email, href: `mailto:${site.email}`, Icon: EnvelopeSimple },
+  { label: "LinkedIn", value: "Mohamed Rizwan Ameer John", href: site.linkedin, external: true, Icon: LinkedinLogo },
+  { label: "GitHub", value: "MohamedRizwan461", href: site.github, external: true, Icon: GithubLogo },
 ];
 
 export default function ContactPage() {
@@ -35,7 +35,7 @@ export default function ContactPage() {
       </Reveal>
 
       <ul className="mt-10 border-t border-rule">
-        {channels.map(({ label, value, href, external }, i) => (
+        {channels.map(({ label, value, href, external, Icon }, i) => (
           <li key={label} className="border-b border-rule">
             <Reveal delay={0.05 * i}>
               <a
@@ -43,8 +43,13 @@ export default function ContactPage() {
                 {...(external ? { target: "_blank", rel: "noopener" } : {})}
                 className="group grid grid-cols-12 items-center gap-4 py-4 no-underline sm:py-5"
               >
-                <span className="eyebrow col-span-12 sm:col-span-3">
-                  {String(i + 1).padStart(2, "0")} <span className="mx-2 opacity-40">/</span> {label}
+                <span className="col-span-12 flex items-center gap-4 sm:col-span-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rule-strong bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] text-ink transition-colors duration-500 group-hover:border-accent group-hover:text-accent">
+                    <Icon size={18} weight="regular" aria-hidden />
+                  </span>
+                  <span className="eyebrow">
+                    {String(i + 1).padStart(2, "0")} <span className="mx-2 opacity-40">/</span> {label}
+                  </span>
                 </span>
                 <span className="display col-span-10 text-[clamp(1rem,1.4vw,1.2rem)] !tracking-[-0.015em] break-words text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-3 sm:col-span-8">
                   {value}

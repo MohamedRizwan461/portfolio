@@ -104,12 +104,49 @@ p {
 
 /* ---- backdrop ---- */
 
+/* the warm oxblood glow the whole site sits in, whatever the mode */
+.bd-warm {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.bd-warm-a {
+  top: -35vh;
+  left: -25vw;
+  width: 110vw;
+  height: 110vw;
+  background: radial-gradient(circle at 50% 50%, var(--warm, rgba(150, 66, 72, 0.3)), transparent 68%);
+  animation: bd-drift-a 36s ease-in-out infinite alternate;
+}
+
+.bd-warm-b {
+  right: -30vw;
+  bottom: -50vh;
+  width: 90vw;
+  height: 90vw;
+  background: radial-gradient(circle at 50% 50%, var(--warm-2, rgba(130, 56, 62, 0.22)), transparent 64%);
+  animation: bd-drift-b 46s ease-in-out infinite alternate;
+}
+
+@keyframes bd-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(8vw, 10vh, 0) scale(1.12); }
+}
+
+html[data-scheme="light"] .bd-warm-a {
+  background: radial-gradient(circle at 50% 50%, rgba(214, 72, 78, 0.16), transparent 62%);
+}
+html[data-scheme="light"] .bd-warm-b {
+  background: radial-gradient(circle at 50% 50%, rgba(214, 72, 78, 0.1), transparent 60%);
+}
+
 /* a soft key light from above, in the operator's colour */
 .bd-light {
   position: absolute;
   inset: 0;
   background: radial-gradient(70% 50% at 50% -12%, var(--field-a, rgba(63, 169, 255, 0.3)), transparent 70%);
-  opacity: 0.55;
+  opacity: 0.35;
   transition: background 800ms ease;
 }
 
@@ -133,10 +170,10 @@ p {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, var(--grid-line, rgba(255, 255, 255, 0.028)) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line, rgba(255, 255, 255, 0.028)) 1px, transparent 1px);
-  background-size: 96px 96px;
-  mask-image: radial-gradient(ellipse 70% 45% at 50% 0%, #000 10%, transparent 75%);
+    linear-gradient(to right, var(--grid-line, rgba(255, 255, 255, 0.045)) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line, rgba(255, 255, 255, 0.045)) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 85% 75% at 45% 40%, #000 25%, transparent 80%);
 }
 
 /* film grain: the thing that stops flat black looking like a default */
@@ -175,11 +212,13 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-field-b { animation: none; }
+  .bd-field-b,
+  .bd-warm { animation: none; }
 }
 
 html[data-finish="matte"] .bd-field,
-html[data-finish="matte"] .bd-light {
+html[data-finish="matte"] .bd-light,
+html[data-finish="matte"] .bd-warm {
   display: none;
 }
 

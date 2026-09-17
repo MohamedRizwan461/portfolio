@@ -43,7 +43,7 @@ const DARK = {
   ink2: "#9aa3b0",
   rule: "rgba(255,255,255,0.08)",
   ruleStrong: "rgba(255,255,255,0.18)",
-  gridLine: "rgba(255,255,255,0.028)",
+  gridLine: "rgba(255,255,255,0.045)",
   vignette: "rgba(0,0,0,0.62)",
   boardInk: "#f2f6fa",
   onAccent: "#05080d",
