@@ -370,15 +370,17 @@ export function BoardExperience() {
             {sound ? <SpeakerHigh size={16} aria-hidden /> : <SpeakerSlash size={16} aria-hidden />}
           </button>
           <ThemeToggle scheme={scheme} onChange={chooseScheme} className={iconBtn} />
-          <a
-            href={site.resumePdf}
-            download
-            aria-label="Download resume"
-            className="ml-1 flex h-10 w-10 items-center justify-center gap-2 rounded-full bg-ink text-[0.85rem] font-medium text-ground no-underline transition-shadow duration-500 sm:ml-1.5 sm:w-auto sm:px-5"
-            style={mode === "recruiter" ? { boxShadow: `0 0 0 1px ${accent}, 0 0 32px -6px ${accent}` } : undefined}
-          >
-            <DownloadSimple size={15} weight="bold" aria-hidden /> <span className="hidden sm:inline">Resume</span>
-          </a>
+          {mode === "recruiter" && (
+            <a
+              href={site.resumePdf}
+              download
+              aria-label="Download resume"
+              className="ml-1 flex h-10 w-10 items-center justify-center gap-2 rounded-full bg-ink text-[0.85rem] font-medium text-ground no-underline transition-shadow duration-500 sm:ml-1.5 sm:w-auto sm:px-5"
+              style={{ boxShadow: `0 0 0 1px ${accent}, 0 0 32px -6px ${accent}` }}
+            >
+              <DownloadSimple size={15} weight="bold" aria-hidden /> <span className="hidden sm:inline">Resume</span>
+            </a>
+          )}
         </nav>
       </header>
 

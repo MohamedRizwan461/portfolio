@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, DownloadSimple, EnvelopeSimple, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, ArrowUpRight, EnvelopeSimple, LinkedinLogo } from "@phosphor-icons/react/dist/ssr";
 import { Deck, type Slide } from "@/components/deck";
 import { JourneyStrip } from "@/components/journey-strip";
 import { HudPortrait } from "@/components/hud-portrait";
@@ -34,9 +34,9 @@ const slides: Slide[] = [
             <Button href="/projects">
               View projects <ArrowRight size={16} weight="bold" aria-hidden />
             </Button>
-            <ButtonAnchor href={site.resumePdf} download variant="secondary">
-              Download resume <DownloadSimple size={16} weight="bold" aria-hidden />
-            </ButtonAnchor>
+            <Button href="/contact" variant="secondary">
+              Get in touch <ArrowRight size={16} weight="bold" aria-hidden />
+            </Button>
           </div>
           <dl className="mt-8 hidden flex-wrap gap-x-10 gap-y-4 text-sm sm:flex">
             {[

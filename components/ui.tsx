@@ -147,7 +147,7 @@ const footerNav = [
   { href: "/tour", label: "Guided tour" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Resume & contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function SiteFooter() {
@@ -187,11 +187,6 @@ export function SiteFooter() {
               <li>
                 <a className="link-u text-ink-2 hover:text-ink" href={site.github} rel="noopener" target="_blank">
                   GitHub
-                </a>
-              </li>
-              <li>
-                <a className="link-u text-ink-2 hover:text-ink" href={site.resumePdf} download>
-                  Download resume
                 </a>
               </li>
             </ul>

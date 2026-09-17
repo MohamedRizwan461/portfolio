@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import { site } from "@/lib/content";
+import { MODE_STORAGE_KEY } from "@/lib/modes";
 import { Mask } from "./motion-bits";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -15,7 +16,7 @@ const nav = [
   { href: "/tour", label: "Tour" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Resume & Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 /** A floating glass capsule that gathers itself once you scroll; a full-screen menu on phones. */
@@ -24,8 +25,16 @@ export function SiteHeader() {
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [recruiter, setRecruiter] = useState(false);
 
   useEffect(() => setOpen(false), [pathname]);
+
+  // the resume is offered in the recruiter view only
+  useEffect(() => {
+    try {
+      setRecruiter(window.localStorage.getItem(MODE_STORAGE_KEY) === "recruiter");
+    } catch {}
+  }, [pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -95,6 +104,7 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-1">
             <ThemeToggle className="flex h-10 w-10 items-center justify-center rounded-full text-ink-2 transition-colors duration-300 hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink" />
+            {recruiter && (
             <a
               href={site.resumePdf}
               download
@@ -102,6 +112,7 @@ export function SiteHeader() {
             >
               <DownloadSimple size={15} weight="bold" aria-hidden /> Resume
             </a>
+            )}
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
@@ -145,6 +156,7 @@ export function SiteHeader() {
               <a href={`mailto:${site.email}`} className="text-lg font-light text-ink">
                 {site.email}
               </a>
+              {recruiter && (
               <a
                 href={site.resumePdf}
                 download
@@ -152,6 +164,7 @@ export function SiteHeader() {
               >
                 <DownloadSimple size={16} weight="bold" aria-hidden /> Download resume
               </a>
+              )}
             </div>
           </motion.div>
         )}

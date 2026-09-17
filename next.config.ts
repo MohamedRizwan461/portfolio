@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // the resume now lives on the contact page, beside the ways to reach me
+  // there is no resume page any more; old links go straight to the PDF
   redirects() {
-    return [{ source: "/resume", destination: "/contact", permanent: true }];
+    return [{ source: "/resume", destination: "/resume/Mohamed-Rizwan-Ameer-John-Resume.pdf", permanent: false }];
   },
 };
 
