@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const channels = [
   { label: "Email", value: site.email, href: `mailto:${site.email}`, Icon: EnvelopeSimple },
-  { label: "LinkedIn", value: "mohamed-rizwan-ameer-john", href: site.linkedin, Icon: LinkedinLogo, external: true },
+  { label: "LinkedIn", value: "mohamed-rizwan-ameer-john-3a459a231", href: site.linkedin, Icon: LinkedinLogo, external: true },
   { label: "GitHub", value: "MohamedRizwan461", href: site.github, Icon: GithubLogo, external: true },
 ];
 

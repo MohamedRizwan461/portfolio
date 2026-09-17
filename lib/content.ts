@@ -5,7 +5,7 @@ export const site = {
   role: "Robotics and Embedded Systems Engineer",
   url: "https://riz-robotics.vercel.app",
   email: "rizwan04061008@gmail.com",
-  linkedin: "https://www.linkedin.com/in/mohamed-rizwan-ameer-john",
+  linkedin: "https://www.linkedin.com/in/mohamed-rizwan-ameer-john-3a459a231/",
   github: "https://github.com/MohamedRizwan461",
   location: "Chicago, IL. Open to relocation.",
   resumePdf: "/resume/Mohamed-Rizwan-Ameer-John-Resume.pdf",
