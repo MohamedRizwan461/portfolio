@@ -8,9 +8,9 @@ import * as THREE from "three";
 import { modes, type Mode, type ModeId } from "@/lib/modes";
 import { playTick, setSoundEnabled, soundEnabled } from "@/lib/sound";
 import { RobotModel } from "./robot-model";
-import { PowerCircuit } from "./power-circuit";
-import { IntroBulb } from "./intro-bulb";
-import { IntroKnife } from "./intro-knife";
+import { IntroFlash } from "./intro-flash";
+import { IntroIgnition } from "./intro-ignition";
+import { IntroScope } from "./intro-scope";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const NAME_LINES = ["MOHAMED RIZWAN", "AMEER JOHN"];
@@ -88,8 +88,11 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
   useEffect(() => setSound(soundEnabled()), []);
 
   // the circuit plays the sound on the switch flip, which is the user's gesture
+  // the instrument already did the show; light the name and go straight to the operators
   const powerOn = useCallback(() => {
-    setPhase((p) => (p === "gate" ? "powering" : p));
+    setLit(NAME.length);
+    setBootLines(BOOT.length);
+    setPhase((p) => (p === "gate" ? "select" : p));
   }, []);
 
   // the name lights up letter by letter, then the log, then the operators
@@ -174,7 +177,7 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
         {phase !== "select" ? (
           <motion.div
             key="power"
-            className="relative flex w-full max-w-4xl flex-col items-center text-center"
+            className="relative flex w-full max-w-5xl flex-col items-center text-center"
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
             transition={{ duration: 0.4, ease: EASE }}
           >
@@ -207,16 +210,16 @@ export function BootIntro({ start, current, accents, onSelect, onDismiss }: Prop
 
             {phase === "gate" ? (
               <div className="mt-6 flex w-full flex-col items-center">
-                {variant === "a" && <PowerCircuit key="a" onPowered={powerOn} />}
-                {variant === "b" && <IntroBulb key="b" onPowered={powerOn} />}
-                {variant === "c" && <IntroKnife key="c" onPowered={powerOn} />}
+                {variant === "a" && <IntroScope key="a" onPowered={powerOn} />}
+                {variant === "b" && <IntroFlash key="b" onPowered={powerOn} />}
+                {variant === "c" && <IntroIgnition key="c" onPowered={powerOn} />}
                 {chooser && (
                   <div className="mt-5 flex items-center gap-2 border border-rule p-1 text-xs" role="radiogroup" aria-label="Intro style">
                     <span className="px-2 text-ink-2">Intro style</span>
                     {([
-                      ["a", "A · Circuit"],
-                      ["b", "B · Real bulb"],
-                      ["c", "C · Knife switch"],
+                      ["a", "A · Oscilloscope"],
+                      ["b", "B · Firmware flash"],
+                      ["c", "C · EV ignition"],
                     ] as const).map(([v, label]) => (
                       <button
                         key={v}
