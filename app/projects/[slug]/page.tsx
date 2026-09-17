@@ -131,6 +131,26 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           <p className="mt-4 max-w-[62ch] text-[0.98rem] leading-relaxed font-light text-ink-2 sm:text-[1.05rem]">{project.problem}</p>
         </Reveal>
 
+        {project.links.length > 0 && (
+          <Reveal delay={0.3}>
+            <ul className="mt-7 flex flex-wrap gap-2">
+              {project.links.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener"
+                    className="group inline-flex h-9 items-center gap-2 rounded-full border border-rule-strong px-4 text-[0.82rem] text-ink no-underline transition-colors duration-300 hover:border-ink"
+                  >
+                    {l.label}
+                    <ArrowUpRight size={12} weight="bold" aria-hidden className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        )}
+
         <Reveal delay={0.35}>
           <dl className="mt-8 grid gap-px overflow-hidden border border-rule bg-[var(--rule)] sm:grid-cols-3">
             {meta.map((m) => (

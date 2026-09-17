@@ -9,7 +9,7 @@ import { projects, site } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Start here",
   description: "Every way into Riz's work in one place: the drive through his story, the gear controller simulator, the case studies and the board.",
-  alternates: { canonical: "/tour" },
+  alternates: { canonical: "/start" },
 };
 
 const ways = [

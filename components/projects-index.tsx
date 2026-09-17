@@ -48,17 +48,23 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
               className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 px-5 py-5 no-underline transition-opacity duration-500 sm:px-7 sm:py-6"
               style={{ opacity: hover !== null && hover !== i ? 0.55 : 1 }}
             >
-              <span className="eyebrow col-span-2 pt-1 sm:col-span-1 sm:pt-1.5" style={{ color: "color-mix(in srgb, var(--accent) 80%, transparent)" }}>
+              <span className="eyebrow col-span-2 pt-1 sm:col-span-1 sm:pt-1.5 lg:col-span-1" style={{ color: "color-mix(in srgb, var(--accent) 80%, transparent)" }}>
                 {String(i + 1).padStart(2, "0")}
               </span>
 
-              <span className="col-span-10 sm:col-span-7">
+              <span className="col-span-10 hidden shrink-0 sm:col-span-2 lg:block">
+                <span className="block aspect-[4/3] w-full overflow-hidden rounded-lg border border-rule bg-[var(--surface)]">
+                  <ProjectVisual project={p} sizes="160px" className="transition-transform duration-700 group-hover:scale-105" />
+                </span>
+              </span>
+
+              <span className="col-span-10 sm:col-span-7 lg:col-span-5">
                 <span className="block text-[clamp(1.1rem,1.5vw,1.3rem)] font-medium tracking-[-0.02em] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5">
                   {p.title}
                 </span>
                 <span className="mt-1.5 line-clamp-2 block max-w-[62ch] text-[0.88rem] leading-relaxed text-ink-2">{p.problem}</span>
                 <span className="mt-3 block font-mono text-[0.66rem] tracking-wide text-ink-2">{p.stack.join("  ·  ")}</span>
-                <span className="mt-5 block aspect-[16/10] overflow-hidden border border-rule lg:hidden">
+                <span className="mt-5 block aspect-[16/10] overflow-hidden rounded-lg border border-rule lg:hidden">
                   <ProjectVisual project={p} sizes="100vw" />
                 </span>
               </span>

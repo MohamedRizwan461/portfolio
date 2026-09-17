@@ -144,7 +144,7 @@ export function Figure({
 }
 
 const footerNav = [
-  { href: "/tour", label: "Start here" },
+  { href: "/start", label: "Start here" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },

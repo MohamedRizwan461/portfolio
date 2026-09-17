@@ -77,7 +77,7 @@ export const modes: Mode[] = [
     headline: "Machines that move for people who can't.",
     sub: "A boy who loved biology, a degree in electronics, a knee brace, a pair of talking glasses and a robot that taught itself to drive.",
     primary: { label: "Start my journey", href: "/about#biology" },
-    secondary: { label: "Guided tour", href: "/tour" },
+    secondary: { label: "Start here", href: "/start" },
     rowTitle: "Watch it move",
     cards: ["gearsim", "journey", "knee", "robot", "eyewear", "maya", "jet"],
     route: [

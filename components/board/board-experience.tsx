@@ -360,7 +360,7 @@ export function BoardExperience() {
           <BusStatus />
         </div>
         <nav aria-label="Primary" className="flex items-center gap-0.5">
-          <Link href="/tour" className={`${link} hidden lg:block`}>
+          <Link href="/start" className={`${link} hidden lg:block`}>
             Start here
           </Link>
           <Link href="/about" className={`${link} hidden lg:block`}>

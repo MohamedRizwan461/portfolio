@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowsOutCardinal, CursorClick, Keyboard, Question, X } from "@phosphor-icons/react/dist/ssr";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -12,7 +12,9 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  */
 export function BoardGuide({ compact, accent, collapsed }: { compact: boolean; accent: string; collapsed: boolean }) {
   const reduce = useReducedMotion();
-  const [open, setOpen] = useState(true);
+  // on a phone the hero owns the top of the screen, so the guide waits as a button
+  const [open, setOpen] = useState(!compact);
+  useEffect(() => setOpen(!compact), [compact]);
   const show = open && !collapsed;
 
   const rows = compact
@@ -27,7 +29,9 @@ export function BoardGuide({ compact, accent, collapsed }: { compact: boolean; a
       ];
 
   return (
-    <div className="absolute top-[4.6rem] right-4 z-20 flex flex-col items-end sm:top-[5.4rem] sm:right-8">
+    <div
+      className={`absolute z-20 flex flex-col items-end ${compact ? "right-4 bottom-[13.5rem]" : "top-[4.6rem] right-4 sm:top-[5.4rem] sm:right-8"}`}
+    >
       <AnimatePresence mode="wait">
         {show ? (
           <motion.div

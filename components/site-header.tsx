@@ -13,7 +13,7 @@ import { ThemeToggle } from "./theme-toggle";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const nav = [
-  { href: "/tour", label: "Start here" },
+  { href: "/start", label: "Start here" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },

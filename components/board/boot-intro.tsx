@@ -113,31 +113,12 @@ export function BootIntro({ start, afterIntro = "select", current, accents, onSe
   const [scene, setScene] = useState(-1);
   const [named, setNamed] = useState(false);
   const [flash, setFlash] = useState(0);
-  const [pct, setPct] = useState(start === "gate" ? 0 : 100);
   const [focus, setFocus] = useState(Math.max(0, modes.findIndex((m) => m.id === current)));
   const [sound, setSound] = useState(true);
   const [leaving, setLeaving] = useState(false);
   const timers = useRef<number[]>([]);
 
   useEffect(() => setSound(soundEnabled()), []);
-
-  // loading count while the particle shapes are prepared
-  useEffect(() => {
-    if (phase !== "gate") return;
-    if (reduce) {
-      setPct(100);
-      return;
-    }
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = () => {
-      const k = Math.min(1, (performance.now() - t0) / 1700);
-      setPct(Math.round((1 - Math.pow(1 - k, 3)) * 100));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [phase, reduce]);
 
   const clearTimers = () => {
     timers.current.forEach((id) => clearTimeout(id));
@@ -206,7 +187,7 @@ export function BootIntro({ start, afterIntro = "select", current, accents, onSe
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (phase === "gate") {
-        if (e.key === "Enter" && pct >= 100) enter(soundEnabled());
+        if (e.key === "Enter") enter(soundEnabled());
         if (e.key === "Escape") skip();
         return;
       }
@@ -220,7 +201,7 @@ export function BootIntro({ start, afterIntro = "select", current, accents, onSe
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, pct, focus, enter, choose, skip, toSelect, onDismiss]);
+  }, [phase, focus, enter, choose, skip, toSelect, onDismiss]);
 
   const hud = "font-mono text-[0.62rem] tracking-[0.28em] uppercase sm:text-[0.68rem]";
 
@@ -336,7 +317,7 @@ export function BootIntro({ start, afterIntro = "select", current, accents, onSe
         )}
       </AnimatePresence>
 
-      {/* gate: loading count, then Enter */}
+      {/* gate: the invitation, shown the moment the page is up */}
       <AnimatePresence>
         {phase === "gate" && (
           <motion.div
@@ -344,39 +325,29 @@ export function BootIntro({ start, afterIntro = "select", current, accents, onSe
             className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center [&>*]:pointer-events-auto"
             exit={{ opacity: 0, scale: 0.92, filter: "blur(8px)", transition: { duration: 0.45, ease: EASE } }}
           >
-            <AnimatePresence mode="wait">
-              {pct < 100 ? (
-                <motion.div key="load" className="text-center" exit={{ opacity: 0, y: -8, transition: { duration: 0.25 } }}>
-                  <p className={`${hud} text-white/40`}>Calibrating</p>
-                  <p className="mt-2 font-mono text-5xl font-extralight tracking-tight text-white/85 tabular-nums">{String(pct).padStart(3, "0")}</p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="enter"
-                  className="flex flex-col items-center"
-                  initial={reduce ? false : { opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.9, ease: EASE }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => enter(true)}
-                    aria-label="Enter with sound"
-                    className="group relative grid h-36 w-36 place-items-center rounded-full sm:h-40 sm:w-40"
-                  >
-                    <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full motion-safe:animate-[spin_18s_linear_infinite]" aria-hidden>
-                      <circle cx="50" cy="50" r="49" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="0.5" strokeDasharray="0.6 2.2" />
-                    </svg>
-                    <span className="absolute inset-3 rounded-full border border-white/15 bg-white/[0.03] backdrop-blur-[2px] transition-all duration-500 group-hover:inset-1 group-hover:border-[#3fa9ff]/80 group-hover:bg-[#3fa9ff]/10 group-hover:shadow-[0_0_60px_-10px_#3fa9ff]" />
-                    <span className="relative pl-[0.4em] text-sm font-medium tracking-[0.4em] uppercase">Enter</span>
-                  </button>
-                  <p className={`${hud} mt-7 text-white/40`}>Best experienced with sound</p>
-                  <button type="button" onClick={() => enter(false)} className="mt-3 text-xs text-white/40 underline-offset-4 transition-colors hover:text-white/80 hover:underline">
-                    Enter without sound
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <motion.div
+              className="flex flex-col items-center"
+              initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: EASE }}
+            >
+              <button
+                type="button"
+                onClick={() => enter(true)}
+                aria-label="Enter with sound"
+                className="group relative grid h-36 w-36 place-items-center rounded-full sm:h-40 sm:w-40"
+              >
+                <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full motion-safe:animate-[spin_18s_linear_infinite]" aria-hidden>
+                  <circle cx="50" cy="50" r="49" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="0.5" strokeDasharray="0.6 2.2" />
+                </svg>
+                <span className="absolute inset-3 rounded-full border border-white/15 bg-white/[0.03] backdrop-blur-[2px] transition-all duration-500 group-hover:inset-1 group-hover:border-[#3fa9ff]/80 group-hover:bg-[#3fa9ff]/10 group-hover:shadow-[0_0_60px_-10px_#3fa9ff]" />
+                <span className="relative pl-[0.4em] text-sm font-medium tracking-[0.4em] uppercase">Enter</span>
+              </button>
+              <p className={`${hud} mt-7 text-white/40`}>Best experienced with sound</p>
+              <button type="button" onClick={() => enter(false)} className="mt-3 text-xs text-white/40 underline-offset-4 transition-colors hover:text-white/80 hover:underline">
+                Enter without sound
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
