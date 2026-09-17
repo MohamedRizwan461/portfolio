@@ -34,9 +34,9 @@ function List({ items }: { items: string[] }) {
   return (
     <ul className="divide-y divide-rule border-y border-rule">
       {items.map((item, i) => (
-        <li key={item} className="grid grid-cols-[2.25rem_1fr] gap-3 py-3.5">
+        <li key={item} className="grid grid-cols-[2rem_1fr] gap-3 py-2.5">
           <span className="pt-1 font-mono text-[0.68rem] text-ink-2">{String(i + 1).padStart(2, "0")}</span>
-          <span className="max-w-[70ch] text-[0.92rem] leading-relaxed text-ink">{item}</span>
+          <span className="max-w-[74ch] text-[0.92rem] leading-[1.6] text-ink">{item}</span>
         </li>
       ))}
     </ul>
@@ -53,7 +53,7 @@ function Section({ id, n, title, children }: { id: string; n: number; title: str
             {title}
           </h2>
         </div>
-        <div className="mt-5">{children}</div>
+        <div className="mt-4">{children}</div>
       </Reveal>
     </section>
   );
@@ -180,7 +180,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       </Container>
 
       {project.slug === "can-gear-controller" && (
-        <Container className="pt-20">
+        <Container className="pt-14">
           <section aria-labelledby="try-it" className="border border-rule bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] p-5 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
@@ -199,14 +199,14 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       )}
 
       {/* the case study */}
-      <Container className="grid gap-12 pt-16 sm:pt-20 lg:grid-cols-12 lg:gap-10">
+      <Container className="grid gap-10 pt-14 sm:pt-16 lg:grid-cols-12 lg:gap-10">
         <aside className="hidden lg:col-span-3 lg:block">
           <div className="sticky top-32">
             <SectionIndex sections={toc} />
           </div>
         </aside>
 
-        <div className="space-y-14 lg:col-span-9">
+        <div className="space-y-10 lg:col-span-9">
           {sections.map((s, i) => (
             <Section key={s.id} id={s.id} n={i + 1} title={s.label}>
               <List items={s.items} />
@@ -214,7 +214,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           ))}
 
           <Section id="characteristics" n={sections.length + 1} title="Characteristics">
-            <div className="grid gap-10 lg:grid-cols-[1fr_16rem]">
+            <div className="grid gap-8 lg:grid-cols-[1fr_16rem]">
               <SpecTable rows={project.characteristics} caption={`${project.title} characteristics`} />
               {project.links.length > 0 && (
                 <div>
@@ -236,7 +236,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
 
           {(galleryFigures.length > 0 || extraVideos.length > 0) && (
             <Section id="gallery" n={sections.length + 2} title="Gallery">
-              <div className="columns-1 gap-6 sm:columns-2 [&>*]:mb-8 [&>*]:break-inside-avoid">
+              <div className="columns-1 gap-5 sm:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
                 {extraVideos.map((v) => (
                   <VideoFigure key={v.src} video={v} />
                 ))}

@@ -4,8 +4,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Lightning, Play } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowRight, Check, Lightning, Play, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react/dist/ssr";
 import { beats } from "@/lib/story";
+import { buzz, playArrive, playBadge, playType, setEngineSpeed, setSoundEnabled, soundEnabled, startEngine, stopEngine, unlockAudio } from "@/lib/sound";
 import type { Sim } from "./cruise-scene";
 import { useAccent } from "./lab";
 
@@ -32,12 +33,26 @@ export function StoryCruise() {
   const [visited, setVisited] = useState<number[]>([]);
   const [near, setNear] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [sound, setSound] = useState(true);
   const talkRef = useRef(talk);
   talkRef.current = talk;
 
   useEffect(() => {
     sim.current.reduce = reduce;
   }, [reduce]);
+
+  useEffect(() => setSound(soundEnabled()), []);
+
+  // the drivetrain: a quiet whine and road noise that follow the speed
+  useEffect(() => {
+    if (!started || !sound) return;
+    startEngine();
+    const id = setInterval(() => setEngineSpeed(Math.abs(sim.current.v) / 15), 120);
+    return () => {
+      clearInterval(id);
+      stopEngine();
+    };
+  }, [started, sound]);
   useEffect(() => {
     sim.current.started = started;
   }, [started]);
@@ -48,13 +63,15 @@ export function StoryCruise() {
     sim.current.talking = talk !== null;
   }, [talk]);
 
-  const onCheckpoint = useCallback((k: number) => {
+  const checkpoint = useCallback((k: number) => {
+    playArrive();
+    buzz(28);
+    sim.current.talking = true;
     // let the camera settle on him before the first words appear
     setTimeout(() => {
       setTalk({ k, line: 0 });
       setTyped(0);
     }, 450);
-    sim.current.talking = true;
   }, []);
 
   const text = talk ? beats[talk.k].lines[talk.line] : "";
@@ -63,7 +80,13 @@ export function StoryCruise() {
     if (!talk) return;
     if (reduce) return setTyped(text.length);
     if (typed >= text.length) return;
-    const id = setTimeout(() => setTyped((t) => Math.min(text.length, t + 2)), 18);
+    const id = setTimeout(() => {
+      setTyped((t) => {
+        const next = Math.min(text.length, t + 2);
+        if (next % 6 === 0) playType();
+        return next;
+      });
+    }, 18);
     return () => clearTimeout(id);
   }, [talk, typed, text, reduce]);
 
@@ -80,8 +103,11 @@ export function StoryCruise() {
     setTalk(null);
     sim.current.talking = false;
     setVisited((vs) => (vs.includes(t.k) ? vs : [...vs, t.k]));
+    buzz(12);
     const badge = beats[t.k].badge;
     if (badge) {
+      playBadge();
+      buzz([20, 50, 30]);
       setToast(badge);
       setTimeout(() => setToast(null), 2200);
     }
@@ -112,7 +138,10 @@ export function StoryCruise() {
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault();
       sim.current.dir = d;
-      if (!started) setStarted(true);
+      if (!started) {
+        unlockAudio();
+        setStarted(true);
+      }
     },
     onPointerUp: () => (sim.current.dir = 0),
     onPointerLeave: () => (sim.current.dir = 0),
@@ -125,7 +154,7 @@ export function StoryCruise() {
   return (
     <div className="relative h-[100dvh] w-full touch-none overflow-hidden bg-[#05070b] select-none" onClick={() => talk && advance()}>
       <div className="absolute inset-0">
-        <CruiseScene sim={sim} accent={accent} visited={visited} onCheckpoint={onCheckpoint} onNear={setNear} />
+        <CruiseScene sim={sim} accent={accent} visited={visited} onCheckpoint={checkpoint} onNear={setNear} />
       </div>
 
       {/* HUD */}
@@ -145,7 +174,22 @@ export function StoryCruise() {
             ))}
           </ol>
         </div>
-        <ul className="flex max-w-[55%] flex-wrap justify-end gap-1.5">
+        <div className="flex flex-col items-end gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              const next = !sound;
+              setSound(next);
+              setSoundEnabled(next);
+              if (next) unlockAudio();
+            }}
+            aria-label={sound ? "Mute sound" : "Turn sound on"}
+            className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur transition-colors hover:border-white/50"
+          >
+            {sound ? <SpeakerHigh size={15} aria-hidden /> : <SpeakerSlash size={15} aria-hidden />}
+          </button>
+        <ul className="flex max-w-full flex-wrap justify-end gap-1.5">
           <AnimatePresence>
             {visited
               .map((k) => beats[k].badge)
@@ -162,6 +206,7 @@ export function StoryCruise() {
               ))}
           </AnimatePresence>
         </ul>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -259,12 +304,20 @@ export function StoryCruise() {
               <h1 className="display mt-4 text-[clamp(2rem,4vw,3rem)] text-white">Ride along through my story.</h1>
               <p className="mt-4 text-white/70">Seven stops, from biology to autonomous vehicles. I pull over at each one and tell you what happened.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <button type="button" onClick={() => setStarted(true)} className="flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-black">
+                <button
+                  type="button"
+                  onClick={() => {
+                    unlockAudio();
+                    setStarted(true);
+                  }}
+                  className="flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-black"
+                >
                   <Play size={15} weight="fill" /> Start driving
                 </button>
                 <button
                   type="button"
                   onClick={() => {
+                    unlockAudio();
                     setAuto(true);
                     setStarted(true);
                   }}

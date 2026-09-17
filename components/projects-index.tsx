@@ -29,7 +29,7 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
         y.set(e.clientY);
       }}
     >
-      <ul className="border-t border-rule">
+      <ul className="flex flex-col gap-2.5">
         {projects.map((p, i) => (
           <motion.li
             key={p.slug}
@@ -37,7 +37,7 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.9, delay: 0.04 * (i % 3), ease: EASE }}
-            className="border-b border-rule"
+            className="overflow-hidden rounded-xl border border-rule bg-[color-mix(in_srgb,var(--surface)_55%,transparent)] transition-[border-color,background-color,transform] duration-500 hover:-translate-y-0.5 hover:border-rule-strong hover:bg-[color-mix(in_srgb,var(--surface)_85%,transparent)]"
           >
             <Link
               href={`/projects/${p.slug}`}
@@ -45,13 +45,15 @@ export function ProjectsIndex({ projects }: { projects: Project[] }) {
               onPointerLeave={() => setHover(null)}
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
-              className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 py-5 no-underline transition-opacity duration-500 sm:py-6"
-              style={{ opacity: hover !== null && hover !== i ? 0.38 : 1 }}
+              className="group grid grid-cols-12 items-start gap-x-4 gap-y-3 px-5 py-5 no-underline transition-opacity duration-500 sm:px-7 sm:py-6"
+              style={{ opacity: hover !== null && hover !== i ? 0.55 : 1 }}
             >
-              <span className="eyebrow col-span-2 pt-1 sm:col-span-1 sm:pt-1.5">{String(i + 1).padStart(2, "0")}</span>
+              <span className="eyebrow col-span-2 pt-1 sm:col-span-1 sm:pt-1.5" style={{ color: "color-mix(in srgb, var(--accent) 80%, transparent)" }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
 
               <span className="col-span-10 sm:col-span-7">
-                <span className="display block text-[clamp(1.15rem,1.6vw,1.4rem)] !tracking-[-0.025em] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2">
+                <span className="block text-[clamp(1.1rem,1.5vw,1.3rem)] font-medium tracking-[-0.02em] text-ink transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5">
                   {p.title}
                 </span>
                 <span className="mt-1.5 line-clamp-2 block max-w-[62ch] text-[0.88rem] leading-relaxed text-ink-2">{p.problem}</span>

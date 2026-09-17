@@ -60,10 +60,10 @@ export function SpecTable({
       <tbody>
         {rows.map((row) => (
           <tr key={row.parameter} className="border-b border-rule align-top transition-colors duration-300 hover:bg-[color-mix(in_srgb,var(--ink)_3%,transparent)]">
-            <th scope="row" className="w-[42%] py-3.5 pr-4 text-left font-normal text-ink-2">
+            <th scope="row" className="w-[42%] py-2.5 pr-4 text-left font-normal text-ink-2">
               {row.parameter}
             </th>
-            <td className="num py-3.5 text-right font-mono text-[0.8125rem] text-ink">{row.value}</td>
+            <td className="num py-2.5 text-right font-mono text-[0.8125rem] text-ink">{row.value}</td>
           </tr>
         ))}
       </tbody>

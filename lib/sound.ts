@@ -268,3 +268,129 @@ export function playSelect() {
   bell(r, t + 0.09, 987.77, 0.05, 0.2);
   sub(r, t, 70, 45, 0.25, 0.5);
 }
+
+/* ------------------------------------------------------------------ the drive */
+
+let engine: { osc: OscillatorNode[]; gain: GainNode; filter: BiquadFilterNode; road: AudioBufferSourceNode; roadGain: GainNode } | null = null;
+
+/** Start the electric drivetrain: a quiet whine plus road noise, both tied to speed. */
+export function startEngine() {
+  const r = audio();
+  if (!r || engine) return;
+  const { ctx } = r;
+  const t = ctx.currentTime;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 900;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.0001;
+  filter.connect(gain);
+  send(r, gain, 0.2);
+
+  const osc = [1, 2.02, 3.01].map((mult, i) => {
+    const o = ctx.createOscillator();
+    o.type = i === 0 ? "sawtooth" : "sine";
+    o.frequency.value = 70 * mult;
+    const g = ctx.createGain();
+    g.gain.value = [0.35, 0.5, 0.25][i];
+    o.connect(g).connect(filter);
+    o.start(t);
+    return o;
+  });
+
+  // tyre roar: looping noise under a lowpass
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  let b = 0;
+  for (let i = 0; i < d.length; i++) {
+    b = 0.985 * b + 0.015 * (Math.random() * 2 - 1);
+    d[i] = b * 5;
+  }
+  const road = ctx.createBufferSource();
+  road.buffer = buf;
+  road.loop = true;
+  const roadFilter = ctx.createBiquadFilter();
+  roadFilter.type = "lowpass";
+  roadFilter.frequency.value = 700;
+  const roadGain = ctx.createGain();
+  roadGain.gain.value = 0.0001;
+  road.connect(roadFilter).connect(roadGain);
+  send(r, roadGain, 0.25);
+  road.start(t);
+
+  engine = { osc, gain, filter, road, roadGain };
+}
+
+/** speed is 0 to 1 */
+export function setEngineSpeed(speed: number) {
+  if (!engine || !rig) return;
+  const t = rig.ctx.currentTime;
+  const s = Math.max(0, Math.min(1, speed));
+  engine.osc.forEach((o, i) => o.frequency.setTargetAtTime((70 + s * 210) * [1, 2.02, 3.01][i], t, 0.25));
+  engine.filter.frequency.setTargetAtTime(700 + s * 1800, t, 0.3);
+  engine.gain.gain.setTargetAtTime(0.0001 + s * 0.07, t, 0.25);
+  engine.roadGain.gain.setTargetAtTime(0.0001 + s * 0.05, t, 0.3);
+}
+
+export function stopEngine() {
+  if (!engine || !rig) return;
+  const { ctx } = rig;
+  const t = ctx.currentTime;
+  engine.gain.gain.setTargetAtTime(0.0001, t, 0.2);
+  engine.roadGain.gain.setTargetAtTime(0.0001, t, 0.2);
+  const e = engine;
+  engine = null;
+  setTimeout(() => {
+    e.osc.forEach((o) => {
+      try {
+        o.stop();
+      } catch {}
+    });
+    try {
+      e.road.stop();
+    } catch {}
+  }, 900);
+}
+
+/** Pulling over at a chapter: a soft double chime. */
+export function playArrive() {
+  const r = audio();
+  if (!r) return;
+  const t = r.ctx.currentTime;
+  bell(r, t, 523.25, 0.045, -0.15);
+  bell(r, t + 0.12, 783.99, 0.05, 0.15);
+  sub(r, t, 90, 55, 0.2, 0.7);
+}
+
+/** One quiet blip while a line types out. */
+export function playType() {
+  const r = audio();
+  if (!r) return;
+  const { ctx } = r;
+  const t = ctx.currentTime;
+  const o = ctx.createOscillator();
+  o.type = "sine";
+  o.frequency.value = 1400 + Math.random() * 260;
+  const g = env(ctx, t, 0.012, 0.002, 0.04);
+  o.connect(g);
+  send(r, g, 0.15);
+  o.start(t);
+  o.stop(t + 0.07);
+}
+
+/** A badge unlocking: three bells climbing. */
+export function playBadge() {
+  const r = audio();
+  if (!r) return;
+  const t = r.ctx.currentTime;
+  [659.25, 987.77, 1318.51].forEach((f, i) => bell(r, t + i * 0.09, f, 0.055, -0.3 + i * 0.3));
+}
+
+/** A short buzz on phones that support it; silent everywhere else. */
+export function buzz(pattern: number | number[]) {
+  if (typeof navigator === "undefined" || !soundEnabled()) return;
+  try {
+    navigator.vibrate?.(pattern);
+  } catch {}
+}
