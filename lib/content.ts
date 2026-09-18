@@ -165,58 +165,109 @@ export const projects: Project[] = [
     ],
     code: [
       {
-        file: "gear_state.c",
-        note: "The interlocks. Every branch is written against a requirement ID, and the test suite runs the same table on the host.",
-        body: `/* src/gear_state.c - every transition traces back to a requirement */
+        file: "src/gear_state.c",
+        note: "The interlocks, straight out of the firmware. Every branch cites the requirement it implements, and the host test suite runs the same table.",
+        body: `/* SWR-002..SWR-007 */
 bool gear_transition_allowed(const gear_ctx_t *ctx, gear_t requested)
 {
+    if (ctx == 0) return false;
+    if (requested >= GEAR_COUNT) return false;
     if (requested == ctx->current) return true;
-    if (requested == GEAR_N)       return true;
-    if (requested == GEAR_P)       return ctx->speed_x10 <= SPEED_PARK_LIMIT_X10;  /* SWR-004 */
 
-    if (requested == GEAR_R) {
-        if (ctx->speed_x10 > SPEED_REVERSE_LIMIT_X10) return false;                /* SWR-003 */
-        if (ctx->current == GEAR_P && !ctx->brake)    return false;                /* SWR-002 */
+    /* SWR-005: neutral is always reachable. */
+    if (requested == GEAR_NEUTRAL) return true;
+
+    /* SWR-004: parking pawl protection. */
+    if (requested == GEAR_PARK) {
+        return ctx->speed_kph_x10 <= SPEED_PARK_LIMIT_X10;
+    }
+
+    /* SWR-003: reverse only at very low speed. */
+    if (requested == GEAR_REVERSE) {
+        if (ctx->speed_kph_x10 > SPEED_REVERSE_LIMIT_X10) return false;
+        /* SWR-002: leaving PARK needs the brake. */
+        if (ctx->current == GEAR_PARK && !ctx->brake_applied) return false;
         return true;
     }
 
     if (gear_is_forward(requested)) {
-        if (ctx->current == GEAR_P) return ctx->brake && requested == GEAR_D1;     /* SWR-002 */
-        if (ctx->current == GEAR_R ||
-            ctx->current == GEAR_N) return requested == GEAR_D1;
-        int8_t step = (int8_t)requested - (int8_t)ctx->current;
-        return step == 1 || step == -1;                                            /* SWR-006 */
+        /* SWR-002: leaving PARK needs the brake. */
+        if (ctx->current == GEAR_PARK) {
+            if (!ctx->brake_applied) return false;
+            return requested == GEAR_D1;   /* pull away in first */
+        }
+        /* From reverse or neutral, engage first gear only. */
+        if (ctx->current == GEAR_REVERSE || ctx->current == GEAR_NEUTRAL) {
+            return requested == GEAR_D1;
+        }
+        /* SWR-007: single-step shifts between forward gears. */
+        int delta = (int)requested - (int)ctx->current;
+        return (delta == 1) || (delta == -1);
     }
+
     return false;
 }`,
       },
       {
-        file: "can_protocol.c",
-        note: "The gear status frame, and why a corrupted or stale one is dropped instead of acted on.",
-        body: `/* src/can_protocol.c - gear status, CAN ID 0x18F00500, 8 bytes, every 20 ms */
-void can_encode_gear_status(const gear_ctx_t *ctx, uint8_t f[8])
-{
-    f[0] = (uint8_t)ctx->current;              /* P, R, N, D1..D8            */
-    f[1] = (uint8_t)(ctx->speed_x10 & 0xFF);   /* road speed in 0.1 km/h,    */
-    f[2] = (uint8_t)(ctx->speed_x10 >> 8);     /* little endian              */
-    f[3] = ctx->throttle_pct;                  /* 0..100                     */
-    f[4] = ctx->faults;                        /* invalid | timeout | crc    */
-    f[5] = 0x00;                               /* reserved                   */
-    f[6] = ctx->rolling_counter & 0x0F;        /* 0..15, wraps               */
+        file: "src/can_protocol.c",
+        note: "The gear status frame: byte layout, the checksum over bytes 0 to 6, and the rolling counter that catches a repeated or dropped frame.",
+        body: `/* Byte layout (SWR-020):
+     0    gear
+     1-2  speed km/h x10, little endian
+     3    throttle percent
+     4    faults
+     5    reserved (0)
+     6    rolling counter, low nibble (SWR-021)
+     7    checksum over bytes 0..6 (SWR-022)
+*/
 
-    uint8_t sum = 0;
-    for (uint8_t i = 0; i < 7; i++) sum += f[i];
-    f[7] = (uint8_t)(0xFF - sum);              /* checksum, SWR-030          */
+uint8_t can_checksum(const uint8_t *data, size_t len)
+{
+    uint8_t sum = 0u;
+    if (data == 0) return 0u;
+    for (size_t i = 0u; i < len; ++i) {
+        sum = (uint8_t)(sum + data[i]);
+    }
+    return (uint8_t)(0xFFu - sum);
 }
 
-/* the receiver drops the frame unless both agree, and faults after 250 ms */
-bool can_frame_is_trusted(const uint8_t f[8], uint8_t last_counter)
+can_result_t can_encode_gear_status(const gear_status_t *in, uint8_t buf[CAN_DLC])
 {
-    uint8_t sum = 0;
-    for (uint8_t i = 0; i < 7; i++) sum += f[i];
-    if (f[7] != (uint8_t)(0xFF - sum))          return false;  /* SWR-030 */
-    if ((f[6] & 0x0F) == (last_counter & 0x0F)) return false;  /* SWR-031 */
-    return true;
+    if (in == 0 || buf == 0) return CAN_ERR_NULL;
+
+    buf[0] = (uint8_t)in->gear;
+    buf[1] = (uint8_t)(in->speed_kph_x10 & 0xFFu);
+    buf[2] = (uint8_t)((in->speed_kph_x10 >> 8) & 0xFFu);
+    buf[3] = in->throttle_pct;
+    buf[4] = in->faults;
+    buf[5] = 0u;
+    buf[6] = (uint8_t)(in->counter & CAN_COUNTER_MAX);
+    buf[7] = can_checksum(buf, 7u);
+
+    return CAN_OK;
+}`,
+      },
+      {
+        file: "src/can_protocol.c",
+        note: "Freshness: a counter that does not advance by one is a gap, and 250 ms of silence raises a timeout fault instead of acting on stale data.",
+        body: `/* src/can_protocol.c - a frame is only trusted if it is fresh and intact */
+/* SWR-024: counter must advance by exactly one, modulo 16. */
+    if (ctx->have_last) {
+        uint8_t expected = (uint8_t)((ctx->last_counter + 1u) & CAN_COUNTER_MAX);
+        if (out->counter != expected) {
+            ctx->last_counter = out->counter;
+            return CAN_ERR_COUNTER_GAP;
+        }
+    }
+
+/* SWR-032 */
+void can_rx_tick(can_rx_ctx_t *ctx, uint32_t now_ms)
+{
+    if (ctx == 0) return;
+    if (!ctx->have_last) return;
+    if ((now_ms - ctx->last_rx_ms) >= CAN_TIMEOUT_MS) {
+        ctx->faults |= (uint8_t)FAULT_TIMEOUT;
+    }
 }`,
       },
     ],
