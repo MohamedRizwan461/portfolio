@@ -227,7 +227,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           </div>
         </aside>
 
-        <div className="space-y-10 lg:col-span-9">
+        <div className="min-w-0 space-y-10 lg:col-span-9">
           {sections.map((s, i) => (
             <Section key={s.id} id={s.id} n={i + 1} title={s.label}>
               <List items={s.items} />
@@ -236,14 +236,14 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
 
           {project.code?.length ? (
             <Section id="code" n={sections.length + 1} title="The code">
-              <div className="space-y-5">
+              <div className="min-w-0 space-y-5">
                 {project.code.map((c) => (
-                  <figure key={c.file} className="m-0 overflow-hidden border border-rule bg-[color-mix(in_srgb,var(--surface)_70%,transparent)]">
+                  <figure key={c.file} className="m-0 min-w-0 max-w-full overflow-hidden border border-rule bg-[color-mix(in_srgb,var(--surface)_70%,transparent)]">
                     <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule px-4 py-2.5">
                       <span className="font-mono text-[0.72rem] text-ink">{c.file}</span>
                       <span className="max-w-[62ch] text-[0.78rem] leading-relaxed text-ink-2">{c.note}</span>
                     </figcaption>
-                    <pre className="overflow-x-auto px-4 py-4 font-mono text-[0.72rem] leading-[1.7] text-ink-2 sm:text-[0.78rem]">
+                    <pre className="max-w-full overflow-x-auto px-4 py-4 font-mono text-[0.72rem] leading-[1.7] text-ink-2 sm:text-[0.78rem]">
                       <code>{c.body}</code>
                     </pre>
                   </figure>

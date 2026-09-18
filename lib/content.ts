@@ -272,7 +272,11 @@ void can_rx_tick(can_rx_ctx_t *ctx, uint32_t now_ms)
       },
     ],
     figures: [canFrame],
-    links: [],
+    links: [
+      { label: "Firmware on GitHub", href: "https://github.com/MohamedRizwan461/can-gear-controller" },
+      { label: "Software requirements", href: "https://github.com/MohamedRizwan461/can-gear-controller/blob/main/docs/requirements.md" },
+      { label: "Unit tests", href: "https://github.com/MohamedRizwan461/can-gear-controller/tree/main/test" },
+    ],
   },
   {
     slug: "smart-knee-actuator",

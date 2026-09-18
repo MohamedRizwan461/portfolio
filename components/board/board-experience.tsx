@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -9,7 +8,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   CaretDown,
-  CursorClick,
   DownloadSimple,
   Moon,
   PlayCircle,

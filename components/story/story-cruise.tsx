@@ -329,7 +329,7 @@ export function StoryCruise({ readHref }: { readHref?: string } = {}) {
           >
             <div className="max-w-lg text-center">
               <p className="eyebrow !text-white/60">About · take a drive</p>
-              <h1 className="display mt-4 text-[clamp(2rem,4vw,3rem)] text-white">Ride along through my story.</h1>
+              <p className="display mt-4 text-[clamp(2rem,4vw,3rem)] text-white">Ride along through my story.</p>
               <p className="mt-4 text-white/70">Seven stops, from biology to autonomous vehicles. I pull over at each one and tell you what happened.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <button
