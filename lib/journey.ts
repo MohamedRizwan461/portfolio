@@ -169,7 +169,7 @@ export const chapters: Chapter[] = [
     title: "Then the vehicles got my attention",
     body: [
       "In the US my interest moved to autonomous vehicles: the same problem I started with, scaled up. A machine reading the world in real time, where being late or wrong has a physical cost.",
-      "I studied adaptive cruise control, analyzed Tesla collision warning and emergency braking against crash-test data, and now I am building a CAN gear controller on STM32 and FreeRTOS.",
+      "I studied adaptive cruise control, analyzed Tesla collision warning and emergency braking from instrumented vehicle test data, and now I am building a CAN gear controller on STM32 and FreeRTOS.",
     ],
     media: {
       kind: "image",
@@ -190,7 +190,7 @@ export const chapters: Chapter[] = [
       fit: "contain",
     },
     facts: [
-      { k: "Time to collision", v: "2.1 s at 25 mph to 1.3 s at 75 mph" },
+      { k: "Time to collision", v: "2.10 s at 25 mph to 1.34 s at 80 mph" },
       { k: "Now building", v: "CAN gear controller, STM32" },
     ],
     link: { label: "The CAN gear controller", href: "/projects/can-gear-controller" },

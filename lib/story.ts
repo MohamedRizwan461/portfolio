@@ -111,7 +111,7 @@ export const beats: Beat[] = [
     lines: [
       "Then vehicles got my attention. The same problem, scaled up.",
       "A machine reading the world in real time, where being late or wrong has a physical cost.",
-      "I analyzed Tesla collision warning and emergency braking against crash-test data.",
+      "I analyzed Tesla collision warning and emergency braking from instrumented vehicle test data.",
       "Now I am building a CAN gear controller on STM32 and FreeRTOS.",
     ],
     media: { kind: "image", src: "/images/certs/build-fellowship.jpg", w: 1210, h: 680, alt: "The Build Fellowship certificate" },

@@ -135,9 +135,10 @@ export const projects: Project[] = [
       "All decision logic (gear state machine, shift scheduler, CAN protocol) is pure C behind a thin HAL, so it runs and is tested on a normal PC.",
     ],
     hardware: [
+      "Planned bring-up setup, not yet built. Everything below on this page is from host-run tests, not from a bench.",
       "2x STM32 Nucleo-F446RE (ARM Cortex-M4)",
       "2x CAN transceivers, 120 ohm termination at each end",
-      "8-channel USB logic analyzer on CAN_TX / CAN_RX",
+      "8-channel USB logic analyzer on CAN_TX / CAN_RX, to close out the timing requirements",
       "ST-Link SWD for flashing and debug",
     ],
     software: [
@@ -157,7 +158,7 @@ export const projects: Project[] = [
     ],
     validation: [
       "Every software requirement carries an ID (SWR-xxx) referenced in the name of the test that verifies it, with a traceability matrix.",
-      "Timing requirements SWR-030 and SWR-031 are verified on the bench with the logic analyzer; those captures are in progress.",
+      "Timing requirements SWR-030 and SWR-031 are open. They need a logic-analyzer capture on real hardware, which I have not built yet, so they are tracked as unverified rather than assumed to pass.",
     ],
     results: [
       "Control logic verified by host-run unit tests on every change.",

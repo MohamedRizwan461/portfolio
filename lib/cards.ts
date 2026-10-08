@@ -94,7 +94,7 @@ export const cards: Record<string, Card> = {
     badges: ["Experience"],
     thumb: { kind: "image", src: "/images/certs/build-fellowship.jpg", fit: "cover" },
     blurb:
-      "Analyzed Tesla forward collision warning and automatic emergency braking against crash-test data from 25 to 75 mph: time to collision fell from 2.1 s to 1.3 s, avoidance rate down 7.7% under partial offset.",
+      "Analyzed Tesla forward collision warning and automatic emergency braking across 36 instrumented runs at 25, 35 and 80 mph: time to collision at the warning fell from 2.10 s to 1.34 s, and automatic braking dropped from about 0.7 g to as little as 0.04 g at 80 mph.",
     cta: { label: "Read the AV chapter", href: "/about#av" },
   },
   contact: {
